@@ -1,0 +1,11 @@
+subprocess
+pandas
+numpy
+os
+nmrglue
+scipy
+tensorflow
+skimage
+matplotlib
+plotly
+
