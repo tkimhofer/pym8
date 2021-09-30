@@ -1,0 +1,13 @@
+pyproject.toml
+setup.cfg
+setup.py
+mm8/__init__.py
+mm8/plotting.py
+mm8/preproc.py
+mm8/reading.py
+mm8/utility.py
+mm8.egg-info/PKG-INFO
+mm8.egg-info/SOURCES.txt
+mm8.egg-info/dependency_links.txt
+mm8.egg-info/requires.txt
+mm8.egg-info/top_level.txt
