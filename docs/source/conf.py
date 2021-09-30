@@ -68,7 +68,7 @@ import sphinx_theme_pd
 #html_theme = 'sphinx_theme_pd'
 #html_theme_path=[sphinx_theme_pd.get_html_theme_path()]
 html_permalinks_icon = '§'
-html_theme = 'insipid'
+html_theme = 'classic'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".

@@ -12,13 +12,30 @@ import plotnine as pn
 from mizani.formatters import scientific_format
 
 class stocsy:
-    # mm8 stocsy V1
-    # (c) torben kimhofer, 21/08/21
+    """
+    Create STOCSY class
+    
+    Args:
+        X: NMR matrix rank 2
+        ppm: chemical shift vector rank 1
+    Returns:
+        class stocsy
+    """
     def __init__(self, X, ppm):
         self.X = X
         self.ppm = ppm
 
     def trace(self, d, shift=[0,10], interactive=True):
+        """
+        Perform STOCSY analysis
+        
+        Args:
+            d: Driver peak position (ppm)
+            shift: Chemical shift range as list of length two
+            interactive: boolean, True for plotly, False for plotnine
+        Returns:
+            graphics object
+        """
         shift=np.sort(shift)
        
         def cov_cor(X, Y):
@@ -55,9 +72,7 @@ class stocsy:
             fig.update_xaxes(autorange="reversed")
             fig.show()
             return fig
-            
-            
-            
+
         else:
             dd=pd.DataFrame({'ppm':np.squeeze(self.ppm), 'cov':np.squeeze(xcov), 'cor':np.abs(np.squeeze(xcor))})
             idx_ppm=np.where((dd.ppm>=shift[0]) & (dd.ppm <= shift[1]))[0]
@@ -76,9 +91,18 @@ class pca:
        # mm8 pca class
        # methods: plot_scores, plot_load
       """
-      Principla Components Analysis class and plotting fcts
-      TODO: Annotation
+      Create PCA class
+        
+      Args:
+            X: NMR matrix rank 2
+            ppm: chemical shift vector rank 1
+            pc: Number of desired principal components
+            center: boolean, mean centering
+            scale: 'uv'
+      Returns:
+            pca class
       """
+      
       def __init__(self, X, ppm, nc=2, center=True, scale='uv'):
         #from matplotlib.pyplot import plt
         self.X = X
@@ -111,7 +135,7 @@ class pca:
         self.r2=r2
        
        
-        def cov_cor(X, Y):
+        def _cov_cor(X, Y):
             #x is pca scores matrix
             #y is colmean centered matrix
            
@@ -130,13 +154,25 @@ class pca:
            
             return (cov, cor)
        
-        xcov, xcor = cov_cor(self.t, self.X)  
+        xcov, xcor = _cov_cor(self.t, self.X)  
            
         self.Xcov=xcov
         self.Xcor=xcor
        
        
       def plot_scores(self, an , pc=[1, 2], hue=None, legend_loc='right'):
+           # methods: plot_scores, plot_load
+        """
+        Plot PCA scores (2D)
+          
+        Args:
+              an: Pandas DataFrame containig colouring variable as column
+              pc: List of indices of principal components, starting at 1, length of two
+              hue: Column name in an of colouring variable
+              legend_loc: Legend locatoin given as string ('right', 'left', 
+        Returns:
+              plotting object
+        """
         self.an=an
         pc=np.array(pc)
         cc=['t' + str(sub) for sub in np.arange(self.t.shape[1])+1]
@@ -186,7 +222,15 @@ class pca:
         return fg
     
       def plot_load(self, pc=1, shift=[0, 10]):
-    
+        """
+        Plot statistical reconstruction of PCA loadings 
+          
+        Args:
+              pc: Index of principal components, starting at 1
+              shift: Chemical shift range (list of 2)
+        Returns:
+              plotting object
+        """
        
          # print(shift)
         shift=np.sort(shift)

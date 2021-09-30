@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The mm8 package provides a framework to apply machine learning and probabilistic programming algorithms to NMR data.
-
-The package contains the following modules:
+The mm8 Python package contains the following modules
         * 'reading' importing 1D and 2D NMR data
         * 'plotting' visualisation functions
-        * 'fitting' peak fitting and metabolite quantification with Jres
+        * 'preproc' NMR preprocessing functions
+        * 'analyse' statistical analysis of NMR spectra
+	* 'utility' helper functions
 """
 # import pandas as pd
 # import numpy as np

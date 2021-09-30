@@ -1,125 +1,60 @@
 
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mm8 &#8212; mm8 watery documentation</title>
-    <link rel="stylesheet" href="_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/insipid.css" type="text/css" />
-
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script defer src="_static/insipid.js"></script>
-    <script defer src="_static/insipid-sidebar.js"></script>
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Introduction" href="intro.html" />
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-  </head>
-  <body class="sidebar-visible">
-    <script type="text/javascript">
-        (function() {
-            var $body = $(document.body);
-            $body.addClass('js');
-            $body.addClass('sidebar-resizing');  // avoid transitions on load
-            $body.removeClass('sidebar-visible');
-            try {
-                var sidebar = localStorage.getItem('sphinx-sidebar');
-                if (sidebar === 'visible') {
-                    $body.addClass('sidebar-visible');
-                }
-                var sidebar_width = localStorage.getItem('sphinx-sidebar-width');
-                if (sidebar_width) {
-                    $(':root').css('--sidebar-width', sidebar_width);
-                }
-            } catch(e) {
-            }
-        })();
-    </script>
-    <header id="topbar-placeholder">
-      <div id="topbar">
-        <div id="titlebar">
-          <div class="buttons">
-            <button id="sidebar-button" type="button" aria-controls="sphinxsidebar" accesskey="M">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"/></svg>
-            </button>
-            <button id="search-button" type="button" title="Search" aria-label="Search" aria-expanded="false" aria-controls="search-form" accesskey="S">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg>
-            </button>
-          </div>
-          <div class="title">
-            <a class="parent" href="index.html" accesskey="U">mm8 watery documentation</a>
-            <a class="top" href="#">mm8</a>
-          </div>
-          <div class="buttons">
-            <button id="fullscreen-button" type="button" aria-hidden="true">
-              <span class="enable">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M212.686 315.314L120 408l32.922 31.029c15.12 15.12 4.412 40.971-16.97 40.971h-112C10.697 480 0 469.255 0 456V344c0-21.382 25.803-32.09 40.922-16.971L72 360l92.686-92.686c6.248-6.248 16.379-6.248 22.627 0l25.373 25.373c6.249 6.248 6.249 16.378 0 22.627zm22.628-118.628L328 104l-32.922-31.029C279.958 57.851 290.666 32 312.048 32h112C437.303 32 448 42.745 448 56v112c0 21.382-25.803 32.09-40.922 16.971L376 152l-92.686 92.686c-6.248 6.248-16.379 6.248-22.627 0l-25.373-25.373c-6.249-6.248-6.249-16.378 0-22.627z"/></svg>
-              </span>
-              <span class="disable">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M4.686 427.314L104 328l-32.922-31.029C55.958 281.851 66.666 256 88.048 256h112C213.303 256 224 266.745 224 280v112c0 21.382-25.803 32.09-40.922 16.971L152 376l-99.314 99.314c-6.248 6.248-16.379 6.248-22.627 0L4.686 449.941c-6.248-6.248-6.248-16.379 0-22.627zM443.314 84.686L344 184l32.922 31.029c15.12 15.12 4.412 40.971-16.97 40.971h-112C234.697 256 224 245.255 224 232V120c0-21.382 25.803-32.09 40.922-16.971L296 136l99.314-99.314c6.248-6.248 16.379-6.248 22.627 0l25.373 25.373c6.248 6.248 6.248 16.379 0 22.627z"/></svg>
-              </span>
-            </button>
-          </div>
-        </div>
-        <div id="searchbox" role="search">
-          <form id="search-form" class="search" style="display: none" action="search.html" method="get">
-            <input type="search" name="q" placeholder="Search ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-            <button>Go</button>
-          </form>
-        </div>
-      </div>
-    </header>
-    <nav>
-      <a href="intro.html" class="nav-icon previous" title="previous:&#13;Introduction" aria-label="Previous topic" accesskey="P" tabindex="-1">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M31.7 239l136-136c9.4-9.4 24.6-9.4 33.9 0l22.6 22.6c9.4 9.4 9.4 24.6 0 33.9L127.9 256l96.4 96.4c9.4 9.4 9.4 24.6 0 33.9L201.7 409c-9.4 9.4-24.6 9.4-33.9 0l-136-136c-9.5-9.4-9.5-24.6-.1-34z"/></svg>
-      </a>
-    </nav>
-
-    <nav class="relbar">
-      <a class="previous" href="intro.html" aria-label="Previous topic" >
-        <div class="icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"/></svg>
-        </div>
-        <div class="title">
-          <span class="text">
-            <span class="direction">previous</span>
-            Introduction
-          </span>
-        </div>
-      </a>
-    </nav>
+    <link rel="prev" title="Introduction" href="intro.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">mm8 watery documentation</a> &#187;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-<div class="section" id="module-mm8">
+  <div class="section" id="module-mm8">
 <span id="mm8"></span><h1>mm8<a class="headerlink" href="#module-mm8" title="Permalink to this headline">¶</a></h1>
-<p>The mm8 package provides a framework to apply machine learning and probabilistic programming algorithms to NMR data.</p>
 <dl class="simple">
-<dt>The package contains the following modules:</dt><dd><ul class="simple">
+<dt>The mm8 Python package contains the following modules</dt><dd><ul class="simple">
 <li><p>‘reading’ importing 1D and 2D NMR data</p></li>
 <li><p>‘plotting’ visualisation functions</p></li>
-<li><p>‘fitting’ peak fitting and metabolite quantification with Jres</p></li>
+<li><p>‘preproc’ NMR preprocessing functions</p></li>
+<li><p>‘analyse’ statistical analysis of NMR spectra</p></li>
+<li><p>‘utility’ helper functions</p></li>
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="useful-1-auto-members">
-<h1>useful #1 – auto members<a class="headerlink" href="#useful-1-auto-members" title="Permalink to this headline">¶</a></h1>
-<p>This is something I want to say that is not in the docstring.</p>
 <span class="target" id="module-mm8.reading"></span><p>This module imports 1D and 2D NMR spectra</p>
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.import2dJres">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2dJres</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2dJres" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2dJres</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2dJres" title="Permalink to this definition">¶</a></dt>
 <dd><p>Imports a single 2D processed NMR spectrum</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -134,9 +69,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.import2d_procs">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2d_procs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">flist</span></em>, <em class="sig-param"><span class="n">exp_type</span></em>, <em class="sig-param"><span class="n">calib</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">n_max</span><span class="o">=</span><span class="default_value">10000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2d_procs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2d_procs</code><span class="sig-paren">(</span><em class="sig-param">flist</em>, <em class="sig-param">exp_type</em>, <em class="sig-param">calib=True</em>, <em class="sig-param">n_max=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2d_procs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Imports 2D processed NMR spectra</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -156,9 +91,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.import2d_raw">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2d_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">flist</span></em>, <em class="sig-param"><span class="n">exp_type</span></em>, <em class="sig-param"><span class="n">calib</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">n_max</span><span class="o">=</span><span class="default_value">10000</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2d_raw" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">import2d_raw</code><span class="sig-paren">(</span><em class="sig-param">flist</em>, <em class="sig-param">exp_type</em>, <em class="sig-param">calib=True</em>, <em class="sig-param">n_max=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.import2d_raw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import 2D raw NMR data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -178,9 +113,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.list_exp">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">list_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">return_results</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">pr</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.list_exp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">list_exp</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">return_results=False</em>, <em class="sig-param">pr=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.list_exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>List all NMR experiment files in directory</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -196,9 +131,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.read1d2d">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1d2d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ll</span></em>, <em class="sig-param"><span class="n">exps</span><span class="o">=</span><span class="default_value">['PROF_URINE_NOESY', 'PROF_URINE_JRES']</span></em>, <em class="sig-param"><span class="n">n_max</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1d2d" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1d2d</code><span class="sig-paren">(</span><em class="sig-param">ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1d2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Imports 1D and 2D processed NMR spectra</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -217,9 +152,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.read1d2d_raw">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1d2d_raw</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ll</span></em>, <em class="sig-param"><span class="n">exps</span><span class="o">=</span><span class="default_value">['PROF_URINE_NOESY', 'PROF_URINE_JRES']</span></em>, <em class="sig-param"><span class="n">n_max</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1d2d_raw" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1d2d_raw</code><span class="sig-paren">(</span><em class="sig-param">ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1d2d_raw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import matching 1D processed and 2D raw NMR data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -238,9 +173,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.read1dFID">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1dFID</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">win</span></em>, <em class="sig-param"><span class="n">ret</span><span class="o">=</span><span class="default_value">'fid'</span></em>, <em class="sig-param"><span class="n">zf</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1dFID" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">read1dFID</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">win</em>, <em class="sig-param">ret='fid'</em>, <em class="sig-param">zf=2</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.read1dFID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Import raw FID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -257,9 +192,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.reading.sqrt_quadratic">
-<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">sqrt_quadratic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.sqrt_quadratic" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.reading.</code><code class="sig-name descname">sqrt_quadratic</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.reading.sqrt_quadratic" title="Permalink to this definition">¶</a></dt>
 <dd><p>L2 norm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -273,9 +208,9 @@
 
 <span class="target" id="module-mm8.plotting"></span><p>Created on Sun Aug  1 10:39:29 2021</p>
 <p>&#64;author: torbenkimhofer</p>
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.plotting.ispec">
-<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">ispec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ppm</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">theme</span><span class="o">=</span><span class="default_value">'gridon'</span></em>, <em class="sig-param"><span class="n">lab</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.ispec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">ispec</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">ppm</em>, <em class="sig-param">shift=None</em>, <em class="sig-param">theme='gridon'</em>, <em class="sig-param">lab=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.ispec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interactive plotting a single or multiple 1D NMR spectra</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -293,9 +228,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.plotting.ispec2d">
-<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">ispec2d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ppm1</span></em>, <em class="sig-param"><span class="n">ppm2</span></em>, <em class="sig-param"><span class="n">shift1</span><span class="o">=</span><span class="default_value">[- 10, 10]</span></em>, <em class="sig-param"><span class="n">shift2</span><span class="o">=</span><span class="default_value">[3, 3.1]</span></em>, <em class="sig-param"><span class="n">theme</span><span class="o">=</span><span class="default_value">'gridon'</span></em>, <em class="sig-param"><span class="n">ptype</span><span class="o">=</span><span class="default_value">'surface'</span></em>, <em class="sig-param"><span class="n">log10</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_fig</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.ispec2d" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">ispec2d</code><span class="sig-paren">(</span><em class="sig-param">x, ppm1, ppm2, shift1=[-10, 10], shift2=[3, 3.1], theme='gridon', ptype='surface', log10=False, return_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.ispec2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interactive plotting a single 2D NMR spectrum</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -317,9 +252,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.plotting.spec">
-<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ppm</span></em>, <em class="sig-param"><span class="n">shift</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ax</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xlab</span><span class="o">=</span><span class="default_value">'ppm'</span></em>, <em class="sig-param"><span class="n">ylab</span><span class="o">=</span><span class="default_value">'Int'</span></em>, <em class="sig-param"><span class="n">title</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">spec</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">ppm</em>, <em class="sig-param">shift=None</em>, <em class="sig-param">ax=None</em>, <em class="sig-param">xlab='ppm'</em>, <em class="sig-param">ylab='Int'</em>, <em class="sig-param">title=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plotting a single or multiple 1D NMR spectra</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -340,9 +275,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.plotting.sub2d1d">
-<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">sub2d1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">ppm</span></em>, <em class="sig-param"><span class="n">x2</span></em>, <em class="sig-param"><span class="n">ppm1</span></em>, <em class="sig-param"><span class="n">ppm2</span></em>, <em class="sig-param"><span class="n">f1</span></em>, <em class="sig-param"><span class="n">f2</span></em>, <em class="sig-param"><span class="n">mdist</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">thr_abs</span><span class="o">=</span><span class="default_value">'auto_100'</span></em>, <em class="sig-param"><span class="n">log10</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.sub2d1d" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">sub2d1d</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">ppm</em>, <em class="sig-param">x2</em>, <em class="sig-param">ppm1</em>, <em class="sig-param">ppm2</em>, <em class="sig-param">f1</em>, <em class="sig-param">f2</em>, <em class="sig-param">mdist=5</em>, <em class="sig-param">thr_abs='auto_100'</em>, <em class="sig-param">log10=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.sub2d1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combined 1D and 2D NMR plot (two panels)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -365,9 +300,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.plotting.sub2d_max">
-<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">sub2d_max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X1</span></em>, <em class="sig-param"><span class="n">ppm1</span></em>, <em class="sig-param"><span class="n">ppm2</span></em>, <em class="sig-param"><span class="n">f1</span></em>, <em class="sig-param"><span class="n">f2</span></em>, <em class="sig-param"><span class="n">mdist</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">thr_abs</span><span class="o">=</span><span class="default_value">2000</span></em>, <em class="sig-param"><span class="n">log10</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">lab</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plist</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.sub2d_max" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.plotting.</code><code class="sig-name descname">sub2d_max</code><span class="sig-paren">(</span><em class="sig-param">X1</em>, <em class="sig-param">ppm1</em>, <em class="sig-param">ppm2</em>, <em class="sig-param">f1</em>, <em class="sig-param">f2</em>, <em class="sig-param">mdist=5</em>, <em class="sig-param">thr_abs=2000</em>, <em class="sig-param">log10=True</em>, <em class="sig-param">lab=None</em>, <em class="sig-param">plist=None</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.plotting.sub2d_max" title="Permalink to this definition">¶</a></dt>
 <dd><p>Contour plot of multiple 2D NMR spectra in horizontal panels</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -391,9 +326,9 @@
 </dd></dl>
 
 <span class="target" id="module-mm8.preproc"></span><p>Pre-processing fucntions for 1D and 2D NMR data</p>
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.preproc.calibrate_doubl">
-<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">calibrate_doubl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">ppm</span></em>, <em class="sig-param"><span class="n">cent_ppm</span></em>, <em class="sig-param"><span class="n">j_hz</span></em>, <em class="sig-param"><span class="n">lw</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">tol_ppm</span><span class="o">=</span><span class="default_value">0.03</span></em>, <em class="sig-param"><span class="n">niter_bl</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.calibrate_doubl" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">calibrate_doubl</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">ppm</em>, <em class="sig-param">cent_ppm</em>, <em class="sig-param">j_hz</em>, <em class="sig-param">lw=0.5</em>, <em class="sig-param">tol_ppm=0.03</em>, <em class="sig-param">niter_bl=5</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.calibrate_doubl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calibrate spectra to a doublet (e.g. plasma to glucose at 5.23 ppm with j_hz=6, alanine at 1.491 ppm with j_hz=6, lactate at 1.35 ppm with j_hz=6)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -413,9 +348,9 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="function">
 <dt id="mm8.preproc.excise1d">
-<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">excise1d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">ppm</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.excise1d" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">excise1d</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">ppm</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.excise1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>Excist spectral intervals using pre-defined limits: Kept is 0.25- 4.5 ppm and 5-10 ppm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -433,9 +368,16 @@
 </dl>
 </dd></dl>
 
-<dl class="py function">
+<dl class="class">
+<dt id="mm8.preproc.pca">
+<em class="property">class </em><code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">pca</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">ppm</em>, <em class="sig-param">nc=2</em>, <em class="sig-param">center=True</em>, <em class="sig-param">scale='uv'</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Principla Components Analysis class and plotting fcts
+TODO: Annotation</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="mm8.preproc.pqn">
-<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">pqn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x_raw</span></em>, <em class="sig-param"><span class="n">log</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.pqn" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mm8.preproc.</code><code class="sig-name descname">pqn</code><span class="sig-paren">(</span><em class="sig-param">x_raw</em>, <em class="sig-param">log=False</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.preproc.pqn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Probabilistic Quotient Normalisation using median spectrum as reference and median quotient as dilution coefficient</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -453,62 +395,151 @@
 </dl>
 </dd></dl>
 
+<span class="target" id="module-mm8.analyse"></span><p>Analysis functions
+&#64;author: torbenkimhofer</p>
+<dl class="class">
+<dt id="mm8.analyse.pca">
+<em class="property">class </em><code class="sig-prename descclassname">mm8.analyse.</code><code class="sig-name descname">pca</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">ppm</em>, <em class="sig-param">nc=2</em>, <em class="sig-param">center=True</em>, <em class="sig-param">scale='uv'</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.analyse.pca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create PCA class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – NMR matrix rank 2</p></li>
+<li><p><strong>ppm</strong> – chemical shift vector rank 1</p></li>
+<li><p><strong>pc</strong> – Number of desired principal components</p></li>
+<li><p><strong>center</strong> – boolean, mean centering</p></li>
+<li><p><strong>scale</strong> – ‘uv’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pca class</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="mm8.analyse.pca.plot_load">
+<code class="sig-name descname">plot_load</code><span class="sig-paren">(</span><em class="sig-param">pc=1, shift=[0, 10]</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.analyse.pca.plot_load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot statistical reconstruction of PCA loadings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pc</strong> – Index of principal components, starting at 1</p></li>
+<li><p><strong>shift</strong> – Chemical shift range (list of 2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>plotting object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="mm8.analyse.pca.plot_scores">
+<code class="sig-name descname">plot_scores</code><span class="sig-paren">(</span><em class="sig-param">an, pc=[1, 2], hue=None, legend_loc='right'</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.analyse.pca.plot_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot PCA scores (2D)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>an</strong> – Pandas DataFrame containig colouring variable as column</p></li>
+<li><p><strong>pc</strong> – List of indices of principal components, starting at 1, length of two</p></li>
+<li><p><strong>hue</strong> – Column name in an of colouring variable</p></li>
+<li><p><strong>legend_loc</strong> – Legend locatoin given as string (‘right’, ‘left’,</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>plotting object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mm8.analyse.stocsy">
+<em class="property">class </em><code class="sig-prename descclassname">mm8.analyse.</code><code class="sig-name descname">stocsy</code><span class="sig-paren">(</span><em class="sig-param">X</em>, <em class="sig-param">ppm</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.analyse.stocsy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create STOCSY class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – NMR matrix rank 2</p></li>
+<li><p><strong>ppm</strong> – chemical shift vector rank 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>class stocsy</p>
+</dd>
+</dl>
+<dl class="method">
+<dt id="mm8.analyse.stocsy.trace">
+<code class="sig-name descname">trace</code><span class="sig-paren">(</span><em class="sig-param">d, shift=[0, 10], interactive=True</em><span class="sig-paren">)</span><a class="headerlink" href="#mm8.analyse.stocsy.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform STOCSY analysis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> – Driver peak position (ppm)</p></li>
+<li><p><strong>shift</strong> – Chemical shift range as list of length two</p></li>
+<li><p><strong>interactive</strong> – boolean, True for plotly, False for plotnine</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>graphics object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <div class="toctree-wrapper compound">
 </div>
 </div>
 
-            <div class="clearer"></div>
+
           </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter">Introduction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/modules.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-
-    <nav class="relbar">
-      <a class="previous" href="intro.html" aria-label="Previous topic" >
-        <div class="icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.3 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"/></svg>
-        </div>
-        <div class="title">
-          <span class="text">
-            <span class="direction">previous</span>
-            Introduction
-          </span>
-        </div>
-      </a>
-    </nav>
-
-
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-
-          <div class="sidebar-resize-handle"></div>
-
-<h3><a href="index.html">Table of Contents</a></h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">mm8</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#useful-1-auto-members">useful #1 – auto members</a><ul class="simple">
-</ul>
-</li>
-</ul>
-
-<hr class="docutils" />
-<ul>
-  <li class="toctree-l1"><a class="reference internal" href="genindex.html" accesskey="I">General Index</a></li>
-  <li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Python Module Index</a></li>
-</ul>
-<div id="ethical-ad-placement"></div>
-        </div>
-      </div>
-    <footer role="contentinfo">
-      &#169; Copyright 2021, Torben Kimhofer.
-      Created using <a class="reference external" href="https://www.sphinx-doc.org/">Sphinx</a> 3.4.3.
-      <a class="reference external" href="https://insipid-sphinx-theme.readthedocs.io/">Insipid Theme</a>.
-<a class="reference internal" href="_sources/modules.rst.txt" rel="nofollow">Show Source</a>.
-    </footer>
-    <div class="sidebar-resize-handle"></div>
-    <div id="overlay"></div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">mm8 watery documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Torben Kimhofer.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.2.0.
+    </div>
   </body>
 </html>
