@@ -14,215 +14,221 @@ import matplotlib.collections as mcoll
 import plotnine as pn
 import tensorflow_probability as tfp
 
+import mm8.utility
+
 tfd=tfp.distributions
 tfb=tfp.bijectors
 
+# identify and exclude re-runs
+
+def excl_doublets(X, ppm, meta):
+    """
+        Exclude re-runs from spectral matrix.
+        Kept is spectrum with lowest TSP line width
+
+        Args:
+            S: Spectral matrix (np array rank 2)
+            ppm: Chemical shift vector
+            meta: Metadata dataframe
+        Returns:
+            Tupel of len 2: X and meta with re-runs excluded
+    """
+
+    ### define lw
+    if not 'lw_hz' in meta.columns:
+        lws=mm8.utility.tsp_lw_sym(X, ppm, hwlen=100)
+        meta = pd.concat(
+            [pd.DataFrame.from_records(lws, index=['lw_hz', 'asym_perc'], columns=meta.index).transpose(), meta],
+            axis=1)
+
+    ### map spectrometer ids
+    sf = np.round(meta.SFO1, 2)
+    meta['spec'] = None
+    #specs = sf.unique()
+    maps = {'600.31': 'ivdr02', '600.21': 'ivdr04', '600.10': 'ivdr05', '600.40': 'ivdr03'}
+    meta['spec'] = [maps[freq] for freq in sf.astype(str).to_list()]
+
+    ## extract plate/exp folder and experiment ids
+    exp_path=meta.id.str.split('/', expand=True)
+    def sear(x):
+        xyes=x.str.contains('^[0-9][0-9].*')
+        id=x.loc[xyes]
+        id_dir=x.loc[np.where(xyes)[0]-1]
+        if (len(id) != 1) | (len(id_dir) != 1):
+            raise Exception('Naming convention error: Check path system!')
+        return [id.values[0], id_dir.values[0]]
+        #id=x.str.findall('(^\d*)').str[0]
+        return
+
+    ids=exp_path.apply(sear, axis=1)
+    add=pd.DataFrame.from_records(ids, columns=['exp_id', 'folder'], index=meta.index)
+    meta=pd.concat([add, meta], axis=1)
+
+    # for each plate and spectrometer find ids with same numbers and filter for lw
+    # keep USERA2 for all spectra to
+    def cutlast(x):
+        ids = x.exp_id.astype(str).str[:-1]
+        cs = ids.value_counts()
+        csre = cs.loc[cs > 1]
+        indic = np.ones(x.shape[0])
+        ids1=x.USERA2.values
+        u2ids=[]
+        u2ids_idx=[]
+        for i in range(csre.shape[0]):
+            iresp = np.where((ids.values == csre.index[i]))[0]
+            u2=np.unique(x.USERA2[iresp].values)
+            u2u=u2[u2 != '']
+            if len(u2u) > 1 :
+                raise Exception('ID in USERA2 not unique.')
+            ids1[iresp]=u2u
+            #x.iloc[iresp]['USERA2']=u2u[0]
+            #u2ids.append(u2u[0])
+            keep = iresp[np.nanargmin(x.lw_hz.iloc[iresp])]
+            indic[iresp] = 0
+            indic[keep] = 1
+            #u2ids_idx.append(keep)
+
+        #iid=x['USERA2'].values
+        #iid[u2ids_idx]=u2ids
+        x['USERA2']=np.array(ids1)
+        x['keep_rerun'] = indic.astype(bool)
+        return x
+
+    # mms=meta.groupby(['spec', 'folder'])
+    # mms.groups.keys()
+    # x = mms.get_group(('ivdr02', 'barwin20_IVDR02_BARWINp08_111120'))
+    #test=cutlast(x)
+
+    meta = meta.groupby(['spec', 'folder']).apply(cutlast)
+    #meta.groups.keys()
+    #x = meta.get_group(('ivdr02', 'barwin20_IVDR02_BARWINp08_111120'))
+    # remove doublets from X and meta
+    idx = np.where(meta.keep_rerun.values)[0]
+    X = X[idx,:]
+    meta = meta.iloc[idx,:]
+
+    return (X, meta)
 
 
-class stocsy:
-    # mm8 stocsy V1
-    # (c) torben kimhofer, 21/08/21
-    def __init__(self, X, ppm):
-        self.X = X
-        self.ppm = ppm
-    import numpy as np
-    import pandas as pd
+def noise(x, ppm, sh=[10, 10.1]):
 
-    def trace(self, d, shift=[0,10], interactive=True):
-        shift=np.sort(shift)
-       
-        def cov_cor(X, Y):
-            #x is pca scores matrix
-            #y is colmean centered matrix
-            
-            if X.ndim == 1:
-                X=np.reshape(X, (len(x), 1))
-            
-            if np.mean(Y[:,1])>1.0e-10:
-                Y =(Y-np.mean(Y, 0)) 
-                X =(X-np.mean(X, 0)) 
-            
-            xy=np.matmul(X.T, Y)
-            cov = xy/(X.shape[0]-1)
-            a=np.sum(X**2, 0)[..., np.newaxis]
-            b=np.sum(Y**2, 0)[np.newaxis, ...]
-            cor= xy / np.sqrt(a*b)
-            
-            return (cov, cor)
-    
-        idx=np.argmin(np.abs(self.ppm-d))
-        y=np.reshape(self.X[:,idx], (np.shape(self.X)[0], 1))
-        xcov, xcor = cov_cor(y, self.X)  
-        
-        if interactive:
-            import plotly.graph_objects as go
-            import plotly.io as pio
-            pio.renderers.default = "browser"
-            idx_ppm=np.where((self.ppm>=shift[0]) & (self.ppm <= shift[1]))[0]
-            t = xcor[0][idx_ppm]
-            x, y = self.ppm[idx_ppm], xcov[0][idx_ppm]
-           
-            fig = go.Figure(data=go.Scatter(x=x, y=y, mode='markers+lines', marker={'color': t, 'colorscale': 'Rainbow', 'size': 5, 'colorbar':dict(title="|r|")}, line={'color': 'black'}) )
-            fig.update_xaxes(autorange="reversed")
-            fig.show()
-            return fig
-            
-            
-            
-        else:
-            import plotnine as pn
-            from mizani.formatters import scientific_format
-            dd=pd.DataFrame({'ppm':np.squeeze(self.ppm), 'cov':np.squeeze(xcov), 'cor':np.abs(np.squeeze(xcor))})
-            idx_ppm=np.where((dd.ppm>=shift[0]) & (dd.ppm <= shift[1]))[0]
-            dd=dd.iloc[idx_ppm]
-            dd['fac']='STOCSY: d='+str(d)+' ppm'+', n='+ str(self.X.shape[0])
-            
-            rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
-            
-            g=pn.ggplot(dd, pn.aes(x='ppm', y='cov', color='cor'))+pn.geom_line()+pn.scale_x_reverse()+pn.scale_colour_gradientn(colors=rainbow, limits=[0,1])+pn.theme_bw()+pn.labs(color='r(X,d)')+ pn.scale_y_continuous(labels=scientific_format(digits=2))+pn.facet_wrap('~fac')
-            
-        return(g)
-        
-        
+    idx = mm8.utility.get_idx(ppm, sh)
 
-class pca:
-       # mm8 pca class
-       # methods: plot_scores, plot_load
-      """
-      Principla Components Analysis class and plotting fcts
-      TODO: Annotation
-      """
-      def __init__(self, X, ppm, nc=2, center=True, scale='uv'):
-        #from matplotlib.pyplot import plt
-        self.X = X
-        self.ppm = ppm
-        self.nc = nc
-        self.center=center
-        self.scale=scale
-        self.means=np.mean(X, 0)
-        self.std=np.std(X, 0)
-        self.Xsc=(self.X-self.means) / self.std
-       
-    
-        if self.center and (self.scale=='uv'):
-            X=self.Xsc
-        else:
-            if center:
-                X=self.X
-            if (scale=='uv'):
-                X=X/self.std
-        self.ss_tot=np.sum((X)**2)
-        self.pca_mod = PCA(n_components=nc).fit(X)
-        self.t = self.pca_mod.transform(X)
-        self.p = self.pca_mod.components_
-        
-        tvar=np.sum(X**2)
-        r2=[]
-        for i in range(self.t.shape[1]):
-            xc=np.matmul(self.t[:,i][np.newaxis].T, self.p[i,:][np.newaxis])
-            r2.append((np.sum(xc**2)/tvar)*100)
-        self.r2=r2
-       
-       
-        def cov_cor(X, Y):
-            #x is pca scores matrix
-            #y is colmean centered matrix
-           
-            if X.ndim == 1:
-                X=np.reshape(X, (len(x), 1))
-           
-            if np.mean(Y[:,1])>1.0e-10:
-                Y =(Y-np.mean(Y, 0))
-                X =(X-np.mean(X, 0))
-           
-            xy=np.matmul(X.T, Y)
-            cov = xy/(X.shape[0]-1)
-            a=np.sum(X**2, 0)[..., np.newaxis]
-            b=np.sum(Y**2, 0)[np.newaxis, ...]
-            cor= xy / np.sqrt(a*b)
-           
-            return (cov, cor)
-       
-        xcov, xcor = cov_cor(self.t, self.X)  
-           
-        self.Xcov=xcov
-        self.Xcor=xcor
-       
-       
-      def plot_scores(self, an , pc=[1, 2], hue=None, legend_loc='right'):
-        self.an=an
-        pc=np.array(pc)
-        cc=['t' + str(sub) for sub in np.arange(self.t.shape[1])+1]
-        df=pd.DataFrame(self.t, columns=cc)
-       
-        if self.an.shape[0]!= df.shape[0]:
-            raise ValueError('Dimensions of PCA scores and annotation dataframe don\'t match.')
-            #return Null
-       
-        ds=pd.concat([df.reset_index(drop=True), an.reset_index(drop=True)], axis=1)
-        print(ds)
-        #ds=ds.melt(id_vars=an.columns.values)
-        #ds=ds.loc[ds.variable.str.contains('t'+str(pc[0])+"|t"+str(pc[1]))]
-       
-        # calculate confidence ellipse
-       
-        x=ds.loc[:, 't'+str(pc[0])]
-        y=ds.loc[:,'t'+str(pc[1])]
-        theta = np.concatenate((np.linspace(-np.pi, np.pi, 50), np.linspace(np.pi, -np.pi, 50)))
-        circle = np.array((np.cos(theta), np.sin(theta)))
-        cov = np.cov(x,y)
-        ed = np.sqrt(chi2.ppf(0.95, 2))
-        ell = np.transpose(circle).dot(np.linalg.cholesky(cov) * ed)
-        a, b = np.max(ell[: ,0]), np.max(ell[: ,1]) #95% ellipse bounds
-        t = np.linspace(0, 2 * np.pi, 100)
-       
-        el_x=a * np.cos(t)
-        el_y=b * np.sin(t)
-       
-        fg = sns.FacetGrid(ds, hue=hue)
-        fg.axes[0][0].axvline(0, color='black', linewidth=0.5, zorder=0)
-        fg.axes[0][0].axhline(0, color='black', linewidth=0.5, zorder=0)
-       
-    
-        ax = fg.facet_axis(0,0)
-    
-        # fg.xlabel('t'+str(pc[0])+' ('+str(self.r2[pc[0]-1])+'%)')
-        # fg.ylabel('t'+str(pc[1])+' ('+str(self.r2[pc[1]-1])+'%)')
-        ax.plot(el_x, el_y, color = 'gray', linewidth=0.5,)
-        fg.map(sns.scatterplot, 't'+str(pc[0]), 't'+str(pc[1]), palette="tab10")
-       
-        fg.axes[0][0].set_xlabel('t'+str(pc[0])+' ('+str(np.round(self.r2[pc[0]-1],1))+'%)')
-        fg.axes[0,0].set_ylabel('t'+str(pc[1])+' ('+str(np.round(self.r2[pc[1]-1],1))+'%)')
-       
-        fg.add_legend(loc=legend_loc)
-    
-        return fg
-    
-      def plot_load(self, pc=1, shift=[0, 10]):
-    
-       
-         # print(shift)
-        shift=np.sort(shift)
-           
-        # print(x)
-        # print(self.Xcor)
-        # print(self.Xcov)
-       
-        x=self.ppm
-        y=self.Xcov[pc,:]
-        z=self.Xcor[pc,:]
-        idx=np.where((x>=shift[0]) & (x <= shift[1]))[0]
-        x=x[idx]
-        y=y[idx]
-        z=z[idx]
-       
-        df=pd.DataFrame({'ppm':x, 'cov':y, 'cor':np.abs(z)})
-        df['fac']='PCA: p'+str(pc)
-       
-        rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
-        g=pn.ggplot(aes(x='ppm', y='cov', color='cor'), data=df)+geom_line()+scale_colour_gradientn(colors=rainbow, limits=[0,1])+theme_bw()+scale_x_reverse()+ scale_y_continuous(labels=scientific_format(digits=2))+facet_wrap('~fac')+labs(color='|r|')
-        return(g)
+    ilen=int(round(len(idx)/2))
+    cent = idx[ilen]
+    a=x[cent:(cent+ilen)]
+    b = x[(cent - ilen):cent]
 
+    t1=((np.sum((a-b)*(np.arange(ilen)+1))**2)*3) / ((ilen*2)**2 -1)
+    t2=np.sum(a+b)**2
+
+    noi=np.sqrt(((np.sum(a**2)+np.sum(b**2))-((t1+t2)/(ilen*2))) / ((ilen*2)-1))
+
+    return noi
+
+
+
+def preproc_qc(X, ppm, meta, multiproc=True, thres_lw=1.2):
+    """
+        Estimation of baseline and residual water signal
+
+        Args:
+            x: single spectrum (rank 1) or NMR matrix (rank 2)
+            ppm: chemical shift vector
+            meta: dataframe with metadata
+        Returns:
+            X, ppm, meta
+    """
+
+    ### define lw
+    if not 'lw_hz' in meta.columns:
+        lws = mm8.utility.tsp_lw_sym(X, ppm, hwlen=100)
+        meta = pd.concat(
+            [pd.DataFrame.from_records(lws, index=['lw_hz', 'asym_perc'], columns=meta.index).transpose(), meta],
+            axis=1)
+
+    idx=np.where(meta.lw_hz <= thres_lw)[0]
+    X=X[idx]
+    meta=meta.iloc[idx]
+
+
+    idx = mm8.utility.get_idx(ppm, [4.72, 4.87])
+    h2o = np.sum(np.abs(X[:, idx]), 1)
+
+    idx3 = mm8.utility.get_idx(ppm, [-0.1, 0.1])
+    tsp = np.sum(X[:, idx3], 1)
+    #tsp_max = np.max(X[:, idx3], 1)
+
+    idx1 = mm8.utility.get_idx(ppm, [0.25, 4.5])
+    idx2 = mm8.utility.get_idx(ppm, [5, 9.5])
+
+    # baseline
+    xcut = np.concatenate([idx2, idx1])
+    if multiproc:
+        import multiprocessing
+        from joblib import Parallel, delayed
+        from tqdm import tqdm
+        def bl_par(i, X, xcut):
+            out = mm8.utility.baseline_als(X[i, xcut], lam=1e6, p=1e-4, niter=10)
+            return out
+
+        ncore = multiprocessing.cpu_count() - 2
+        spec_seq = tqdm(np.arange(X.shape[0]))
+        bls = Parallel(n_jobs=ncore)(delayed(bl_par)(i, X, xcut) for i in spec_seq)
+        bls = np.array(bls)
+    else:
+        bls = []
+        for i in range(X.shape[0]):
+            bls.append(baseline_als(X[i, xcut], lam=1e6, p=1e-4, niter=10))
+    bls = np.array(bls)
+    b_aliph = np.sum(bls[:, 0:len(idx1)], axis=1)
+    b_arom = np.sum(bls[:, (len(idx1) + 1):], axis=1)
+
+    Xbl = X[:, xcut] - bls
+    ppbl = ppm[xcut]
+
+    # signal estimation: tsp and total integral
+    signal = np.sum(Xbl, 1)
+    h2o_signal_perc = (h2o / signal) * 100
+    h2o_tsp_perc = (h2o / tsp) * 100
+
+    signal_tsp_perc = (signal / tsp) * 100
+    signal_bl_per = (signal / (b_aliph + b_arom)) * 100
+
+    # signal to noise estimation
+    noi = list()
+    for i in range(X.shape[0]):
+        noi.append(np.round(noise(Xbl[i], ppm, sh=[10, 10.1])))
+
+    sino_tsp = tsp / noi
+    signal_med = np.quantile(Xbl, 0.25, axis=1)
+    sino_medsignal = signal_med / noi
+
+    cids = ['rWater', 'bl_aliphatic', 'bl_aromatic', 'signal', 'tsp', 'rWater_tsp_perc', 'rWater_signal_perc', \
+            'signa_tsp_perc', 'signal_bl_perc', 'sino_tsp', 'signalQ1', 'sino_signalQ1']
+    schars = pd.DataFrame(
+        [h2o, b_aliph, b_arom, signal, tsp, h2o_tsp_perc, h2o_signal_perc, signal_tsp_perc, signal_bl_per, sino_tsp, \
+         signal_med, sino_medsignal], index=cids).transpose()
+
+    schars.index=meta.index
+    meta=pd.concat([meta, schars], axis=1)
+    return (Xbl, ppbl, meta)
+
+
+
+def get_idx(ppm, shift):
+    """
+    Returns chemical shift index for a given interval
+
+    Args:
+        ppm: Chemical shift array (rank 1)
+        shift: Chemical shift interval (list)
+    Returns:
+        1D array of ppm indices
+    """
+    shift = np.sort(shift)
+    out = (ppm > shift[0]) & (ppm < shift[1])
+    return np.where(out == True)[0]
 
 
 # calibrate to double defined in this function
@@ -328,29 +334,41 @@ def pqn(x_raw, log=False):
     Returns:
         Tuple of two: Xn, DataFrame of dilution coefficients
     """
-    x_raw[x_raw<1]=None
+
     if log:
+        x_raw[x_raw < 1] = None
         lev=3
         x_raw=np.log10(x_raw)
     else:
-        lev=10**3
+        q=np.nanquantile(x_raw, 0.1, axis=1)
+        #lev=10**3
+        lev=q
         
     #idx_keep=x_raw>lev
     #plt.plot(x_raw[0,:])
-    ref=np.median(x_raw, 0)[np.newaxis, ...]
+    ref=np.nanmedian(x_raw, 0)[np.newaxis, ...]
     #idx_keep=ref<lev
-    ref[ref<lev]=None
+    ref[ref<np.nanquantile(ref, 0.1)]=None
 
     quot=x_raw/ref
    
     xna=list()
     for i in range(x_raw.shape[0]):
         xna.append(quot[i,~np.isnan(quot[i,:])])
-    
-    emp=tfp.distributions.Empirical(xna)
-    mea=emp.mean()
-    mo=emp.mode()
-    me=np.median(xna, 1)
+
+    tt = [len(x) for x in xna]
+    idx_empty = np.where(np.array(tt) == 0)
+    print('Removing spectrum/spectra '+str(idx_empty))
+    idx_keep = np.where(np.array(tt) > 0)[0]
+    x_raw=x_raw[idx_keep]
+    quot=quot[idx_keep]
+    xna=np.array(xna)[idx_keep]
+
+    #emp=tfp.distributions.Empirical(xna.tolist())
+    #mea=emp.mean()
+    mea=np.nanmean(xna, 1)
+    #mo=emp.mode()
+    me=np.nanmedian(xna, 1)
    
     x_norm=np.ones(x_raw.shape)
     for i in range(x_raw.shape[0]):
@@ -360,7 +378,9 @@ def pqn(x_raw, log=False):
         x_norm=10**x_norm
         #x_n1=10**x_norm
     
-    dilfs = pd.DataFrame({'med':me, 'mod':mo, 'me':mea})
+    dilfs = pd.DataFrame({'median':me, 'mean':mea})
+    #dilfs = pd.DataFrame({'med':me, 'mod':mo, 'me':mea})
+
     
     
     return (x_norm, dilfs)

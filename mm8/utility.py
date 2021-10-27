@@ -15,6 +15,86 @@ tfd=tfp.distributions
 
 
 
+
+def binning1d(Xbl2, pp2, nbins=None, bwidth=0.01):
+
+    if isinstance(nbins, int):
+        idx_step=np.arange(0, len(pp2), int(len(pp2)/(nbins-1)))
+    else:
+        if isinstance(bwidth, float):
+            step = np.median(np.diff(pp2))
+            bwidth
+            stepsize = np.abs(int(np.round(bwidth / step)))
+            idx_step = np.arange(0, Xbl2.shape[1], stepsize)
+
+    Xbin=np.zeros((Xbl2.shape[0], len(idx_step)))
+    ppm_bin = np.zeros(len(idx_step))
+    for i in range(1, len(idx_step)):
+        Xbin[:, i] = np.nansum(Xbl2[:, idx_step[i - 1]:idx_step[i]], 1)
+        ppm_bin[i]=np.mean(pp2[idx_step[(i-1)]:idx_step[i]])
+    return (Xbin, ppm_bin)
+
+
+
+def tsp_sym_single(x, hwlen=100):
+    #hwlen = 100
+    x = x / np.max(x)
+    pimax = np.argmax(x)
+    #q_le = [0]
+    q_ri = [0]
+    for i in range(1, hwlen):
+        #q_le.append(x[pimax - i] - x[pimax + i])
+        q_ri.append(x[pimax + i] - x[pimax - i])
+
+    a=np.sum(np.abs(q_ri))
+    b=np.sum(np.abs(x[(pimax+1):((pimax+1)+(hwlen))]))
+    return np.round((a/b)*100)
+
+def tsp_sym(Xp, hwlen=100):
+    ps = []
+    for i in range(Xp.shape[0]):
+        #print(i)
+        ps.append(tsp_sym_single(Xp[i], hwlen))
+    return ps
+
+def tsp_lw_sym(x, ppm, hwlen=100):
+    """
+        TSP line width and peak symmetry
+        This function is included in preproc.excl_doublets
+
+        Args:
+            x: single spectrum (rank 1) or NMR matrix (rank 2)
+            ppm: chemical shift vector
+        Returns:
+            Tuple len 1: lw in Hz (<1 Hz is good) and symmetry estimate (the smaller the better, <0.0033 is good)
+    """
+    from scipy.signal import find_peaks, peak_widths
+    idx = get_idx(ppm, [-0.4, 0.4])
+
+    if x.ndim == 1:
+        #x = X[1, idx] / np.max(X[1, idx])
+        peaks, _ = find_peaks(x, height=0.4)
+        if (len(peaks) != 1): return None; #raise Exception('Check signals in TSP area')
+        pw=peak_widths(x, peaks)
+        sym=tsp_sym_single(x, hwlen)
+        lw_idx=pw[0][0]
+        lw_ppm=lw_idx * (ppm[0] - ppm[1]) * 600
+    if x.ndim == 2:
+        lw_ppm=[]
+        sym=[]
+        for i in range(x.shape[0]):
+            xs = x[i, idx] / np.max(x[i, idx])
+            peaks, _ = find_peaks(xs, height=0.8)
+            if(len(peaks)!=1): print(i); lw_ppm.append(float("nan")); sym.append(float("nan")); continue#raise Exception('Check signals in TSP area')
+            pw = peak_widths(xs, peaks, rel_height=0.5)
+            sym.append(tsp_sym_single(xs, hwlen))
+            lw_idx=pw[0][0]
+            lw_ppm.append(lw_idx * (ppm[0] - ppm[1]) * 600)
+
+    return [lw_ppm, sym]
+
+
+
 def doub(cent_ppm=1.35, jconst_hz=6, lw=1.35, mag=100., sf=600, out='ppm', shift=[1.2, 1.5]):
     """
     Create a paramteric 1D doublet (Cauchy)
@@ -50,7 +130,7 @@ def baseline_als(y, lam, p, niter=10):
         p: Probablity value
         n_inter: Max number of interations
     Returns:
-        baseline corrected spectrum (array rank 1)
+        baseline corrected spectrum (rank 1)
     """
     L = len(y)
     D = diags([1,-2,1],[0,-1,-2], shape=(L,L-2))
@@ -226,7 +306,7 @@ def calibrate(X, ppm, signal='tsp'):
     Returns:
         Calibrated NMR array
     """
-    tsp=get_idx(ppm, [-0.1, 0.1])[0]
+    tsp=get_idx(ppm, [-0.1, 0.1])
     shift=ppm[tsp][np.argmax(X[:,tsp], 1)]
     ppm_new=ppm-shift[..., np.newaxis]
     for i in range(X.shape[0]):

@@ -11,6 +11,7 @@ import plotly.io as pio
 import plotnine as pn
 from mizani.formatters import scientific_format
 
+
 class stocsy:
     """
     Create STOCSY class
@@ -104,6 +105,7 @@ class pca:
       """
       
       def __init__(self, X, ppm, nc=2, center=True, scale='uv'):
+        from sklearn.decomposition import PCA
         #from matplotlib.pyplot import plt
         self.X = X
         self.ppm = ppm
@@ -162,6 +164,7 @@ class pca:
        
       def plot_scores(self, an , pc=[1, 2], hue=None, legend_loc='right'):
            # methods: plot_scores, plot_load
+        from scipy.stats import chi2
         """
         Plot PCA scores (2D)
           

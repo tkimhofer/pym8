@@ -11,12 +11,52 @@ import os
 import nmrglue as ng
 from scipy import interpolate
 import tensorflow as tf
- #import subprocess
+import sys
+import mm8.utility
 
-    
+
+def eretic_factor(mc):
+    import xml.etree.ElementTree as xl
+    mf = mc.id.str.replace('acqus:.*', '', regex=True)
+    ere = []
+    ere_len=[]
+    for i in range(mc.shape[0]):
+        print(i)
+        try:
+            ff = xl.parse(mf.iloc[i] + 'QuantFactorSample.xml')
+            fr = ff.getroot()
+            inf={
+                'file': mf.iloc[i],
+                fr[0][0][1].tag: float(fr[0][0][1].text),
+                fr[0][0][2].tag: float(fr[0][0][2].text),
+                fr[0][0][3].tag: float(fr[0][0][3].text),
+                fr[0][0][4].tag: fr[0][0][4].text,
+                fr[0][0][6][2].tag: list(fr[0][0][6][2].items())[0][1],
+                #fr[0][0][6][2].tag: fr[0][0][6][2].items()[0][1],
+                #fr[0][0][6][3].tag: float(fr[0][0][6][3].text), #
+                fr[0][1][0][0].tag: float(fr[0][1][0][0].text),
+                fr[0][0][6][5][10].tag: fr[0][0][6][5][10].text,
+            }
+            ere.append(inf)
+
+        except:
+            print("Not all exp contain file QuantFactorSample.xml ")
+            inf=''
+            ere.append(inf)
+        ere_len.append(len(inf))
+
+    # fill up where no eretic xml
+    idx_repl=np.where(np.array(ere_len) != np.max(np.array(ere_len)))[0]
+    rep=ere[np.where(np.array(ere_len) == np.max(np.array(ere_len)))[0][0]]
+    rep = dict.fromkeys(rep, None)
+    for i in range(len(idx_repl)):
+        ere[idx_repl[i]]=rep
+
+    return pd.DataFrame(ere)
 
 
-def list_exp(path, return_results=False, pr=True):
+
+def list_exp(path, return_results=True, pr=True):
     """
     List all NMR experiment files in directory
     
@@ -66,6 +106,93 @@ def list_exp(path, return_results=False, pr=True):
     if return_results:
         return df
 
+
+def import1d_procs(flist, exp_type, eretic=True):
+    # import subprocess
+    import pandas as pd
+    import numpy as np
+    import os
+    import nmrglue as ng
+    import re
+    """
+    Imports 1D processed NMR spectra
+
+    Args:
+        flist:  DataFrame of experiment information (see list_exp())
+        exp_type:   2D experiment name, string (used for filtering)
+    Returns:
+        Tuple of three: X, ppm, meta
+    """
+
+    # idx=np.where(flist.exp==exp_type)[0]
+    # fexp=flist.iloc[idx,:].reset_index(drop=True)
+    # print('Experiments found: ' + str(len(idx)))
+    fexp = flist.loc[flist.exp.isin(exp_type)].reset_index(drop=True)
+
+    lacqus = []
+    lprocs = []
+    idx_filter = []
+    c = 0
+    for i in range(fexp.shape[0]):
+        # print(i)
+
+        f_path = os.path.join(fexp.loc[i, 'fid'], '') + 'pdata/1'
+
+        p1 = f_path + '/1r'
+        if not os.path.isfile(p1):
+            continue
+
+        meta, spec = ng.bruker.read_pdata(f_path)
+        SF01 = meta['procs']['OFFSET']
+        SF = meta['procs']['SF']
+        SW = meta['procs']['SW_p'] / SF
+        FTsize = meta['procs']['FTSIZE']
+        ppm = np.linspace(SF01, SF01 - SW, FTsize)
+
+        if c == 0:
+            ppm_ord = ppm
+            smat = np.ones((fexp.shape[0], len(ppm_ord)))
+            smat[0, :] = spec
+
+        else:
+            # interpolate spec to same ppm values across experiments
+            s_interp = np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec)))
+            smat[i, :] = s_interp
+        lacqus.append(meta['acqus'])
+        lprocs.append(meta['procs'])
+        idx_filter.append(c)
+        c = c + 1
+        # exp.append((spec, ppm, meta))
+
+    smat = smat[np.array(idx_filter), :]
+    procs = pd.DataFrame(lprocs)
+    acqus = pd.DataFrame(lacqus)
+
+    meta = pd.concat([acqus, procs], axis=1)
+    meta['id'] = fexp.id.iloc[np.array(idx_filter)]
+
+    meta.index = ["s" + str(x) for x in meta.index]
+    ab = np.split(meta._comments.values, '')[0]
+    dtime = list()
+    for i in range(len(ab)):
+        dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
+    meta['datetime'] = dtime
+
+    if eretic:
+        ere = eretic_factor(meta)
+        tsp_pos=ere.Artificial_Eretic_Position.dropna().unique()
+        if len(tsp_pos)==1:
+            idx = mm8.utility.get_idx(ppm_ord, [tsp_pos[0]-0.1, tsp_pos[0]+1])
+            ere['eretic_integral']=np.sum(smat[:,idx], 1)
+        ere.columns=ere.columns.str.lower()
+        ere.index = meta.index
+        meta = pd.concat([meta, ere], axis=1)
+
+    eres = meta.eretic_factor.values[..., np.newaxis]
+    smat = smat / eres
+
+    print('Experiments read-in: ' + str(meta.shape[0]))
+    return (smat, ppm_ord, meta)
 
 
 # load 1d and 2d in same go, order rows to match spectra
@@ -199,84 +326,6 @@ def import2dJres(path):
     return (jres, ppm1, ppm2)
 
 
-def import1d_procs(flist, exp_type):
-    #import subprocess
-    import pandas as pd
-    import numpy as np
-    import os
-    import nmrglue as ng
-    import re
-    """
-    Imports 1D processed NMR spectra
-    
-    Args:
-        flist:  DataFrame of experiment information (see list_exp())
-        exp_type:   2D experiment name, string (used for filtering)
-    Returns:
-        Tuple of three: X, ppm, meta
-    """
-    
-    #idx=np.where(flist.exp==exp_type)[0]
-    #fexp=flist.iloc[idx,:].reset_index(drop=True)
-    #print('Experiments found: ' + str(len(idx)))
-    fexp=flist.loc[flist.exp.isin(exp_type)].reset_index(drop=True)
-    
-    lacqus=[]
-    lprocs=[]
-    idx_filter=[]
-    c=0
-    for i in range(fexp.shape[0]):
-        #print(i)
-        
-        f_path= os.path.join(fexp.loc[i, 'fid'], '')+'pdata/1'
-        
-        p1=f_path+'/1r'
-        if not os.path.isfile(p1):
-            continue
-        
-        meta, spec=ng.bruker.read_pdata(f_path)
-        SF01 = meta['procs']['OFFSET']  
-        SF = meta['procs']['SF']                                      
-        SW = meta['procs']['SW_p']/SF                            
-        FTsize = meta['procs']['FTSIZE']     
-        ppm=np.linspace(SF01, SF01-SW, FTsize)
-        
-        if c==0:
-            ppm_ord=ppm
-            smat=np.ones((fexp.shape[0], len(ppm_ord)))
-            smat[0,:]=spec
-           
-        else:
-            # interpolate spec to same ppm values across experiments
-            s_interp=np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec)))
-            smat[i,:]=s_interp
-        lacqus.append(meta['acqus'])
-        lprocs.append(meta['procs'])
-        idx_filter.append(c)
-        c=c+1
-        #exp.append((spec, ppm, meta))
-    
-    smat=smat[np.array(idx_filter),:]
-    procs=pd.DataFrame(lprocs)
-    acqus=pd.DataFrame(lacqus)
-    
-    meta=pd.concat([acqus, procs], axis=1)
-    meta['id']=fexp.id.iloc[np.array(idx_filter)]
-    
-    meta.index=["s" + str(x) for x in meta.index]
-    
-    #meta['id']=fexp.id.iloc(np.array(idx_filter))
-    
-    ab=np.split(meta._comments.values, '')[0]
-    dtime=list()
-    for i in range(len(ab)):
-        dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
-    meta['datetime']=dtime
-        
-    print('Experiments read-in: ' + str(meta.shape[0]))
-    
-    return (smat, ppm_ord, meta)
-  
 
 
 def import2d_procs(flist, exp_type, calib=True, n_max=10000):
@@ -405,7 +454,7 @@ def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
      
     # establish mapping for exp1 and exp2
     sxp = pd.merge(exp1, exp2, how='inner', on=['uid'])
-    
+
     if n_max<sxp.shape[0]:
         sxp=sxp.iloc[0:n_max]
     
@@ -413,7 +462,8 @@ def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
     exp1.columns=exp1.columns.str.replace('_x', '')
 
     # read in both data sets using 1D and 2D read functoins
-    X, ppm, met= import1d_procs(flist=exp1, exp_type=exps[0])
+    print('hi')
+    X, ppm, met= import1d_procs(flist=exp1, exp_type=[exps[0]])
     
     exp2=sxp.filter(regex=('_y$'))
     exp2.columns=exp2.columns.str.replace('_y', '')
