@@ -38,26 +38,24 @@ class stocsy:
             graphics object
         """
         shift=np.sort(shift)
-       
-        def cov_cor(X, Y):
-            #x is pca scores matrix
-            #y is colmean centered matrix
-            
+
+        def _cov_cor(X, Y):
+            # x is pca scores matrix
+            # y is colmean centered matrix
             if X.ndim == 1:
-                X=np.reshape(X, (len(x), 1))
-            
-            if np.mean(Y[:,1])>1.0e-10:
-                Y =(Y-np.mean(Y, 0)) 
-                X =(X-np.mean(X, 0)) 
-            
-            xy=np.matmul(X.T, Y)
-            cov = xy/(X.shape[0]-1)
-            a=np.sum(X**2, 0)[..., np.newaxis]
-            b=np.sum(Y**2, 0)[np.newaxis, ...]
-            cor= xy / np.sqrt(a*b)
-            
+                X = np.reshape(X, (len(X), 1))
+            if Y.ndim == 1:
+                Y = np.reshape(Y, (len(Y), 1))
+            if np.mean(Y[:, 0]) > 1.0e-10:
+                Y = (Y - np.mean(Y, 0))
+                X = (X - np.mean(X, 0))
+            xy = np.matmul(X.T, Y)
+            cov = xy / (X.shape[0] - 1)
+            a = np.sum(X ** 2, 0)[..., np.newaxis]
+            b = np.sum(Y ** 2, 0)[np.newaxis, ...]
+            cor = xy / np.sqrt(a * b)
             return (cov, cor)
-    
+
         idx=np.argmin(np.abs(self.ppm-d))
         y=np.reshape(self.X[:,idx], (np.shape(self.X)[0], 1))
         xcov, xcor = cov_cor(y, self.X)  
@@ -135,28 +133,25 @@ class pca:
             xc=np.matmul(self.t[:,i][np.newaxis].T, self.p[i,:][np.newaxis])
             r2.append((np.sum(xc**2)/tvar)*100)
         self.r2=r2
-       
-       
+
         def _cov_cor(X, Y):
-            #x is pca scores matrix
-            #y is colmean centered matrix
-           
+            # x is pca scores matrix
+            # y is colmean centered matrix
             if X.ndim == 1:
-                X=np.reshape(X, (len(x), 1))
-           
-            if np.mean(Y[:,1])>1.0e-10:
-                Y =(Y-np.mean(Y, 0))
-                X =(X-np.mean(X, 0))
-           
-            xy=np.matmul(X.T, Y)
-            cov = xy/(X.shape[0]-1)
-            a=np.sum(X**2, 0)[..., np.newaxis]
-            b=np.sum(Y**2, 0)[np.newaxis, ...]
-            cor= xy / np.sqrt(a*b)
-           
+                X = np.reshape(X, (len(X), 1))
+            if Y.ndim == 1:
+                Y = np.reshape(Y, (len(Y), 1))
+            if np.mean(Y[:, 0]) > 1.0e-10:
+                Y = (Y - np.mean(Y, 0))
+                X = (X - np.mean(X, 0))
+            xy = np.matmul(X.T, Y)
+            cov = xy / (X.shape[0] - 1)
+            a = np.sum(X ** 2, 0)[..., np.newaxis]
+            b = np.sum(Y ** 2, 0)[np.newaxis, ...]
+            cor = xy / np.sqrt(a * b)
             return (cov, cor)
-       
-        xcov, xcor = _cov_cor(self.t, self.X)  
+
+        xcov, xcor = _cov_cor(self.t, self.X)
            
         self.Xcov=xcov
         self.Xcor=xcor
@@ -165,6 +160,7 @@ class pca:
       def plot_scores(self, an , pc=[1, 2], hue=None, legend_loc='right'):
            # methods: plot_scores, plot_load
         from scipy.stats import chi2
+        import seaborn as sns
         """
         Plot PCA scores (2D)
           

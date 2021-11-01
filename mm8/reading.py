@@ -21,7 +21,7 @@ def eretic_factor(mc):
     ere = []
     ere_len=[]
     for i in range(mc.shape[0]):
-        print(i)
+        #print(i)
         try:
             ff = xl.parse(mf.iloc[i] + 'QuantFactorSample.xml')
             fr = ff.getroot()

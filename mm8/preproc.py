@@ -46,7 +46,14 @@ def excl_doublets(X, ppm, meta):
     meta['spec'] = None
     #specs = sf.unique()
     maps = {'600.31': 'ivdr02', '600.21': 'ivdr04', '600.10': 'ivdr05', '600.40': 'ivdr03'}
-    meta['spec'] = [maps[freq] for freq in sf.astype(str).to_list()]
+
+    # add to maps
+    not_in= set(np.unique(sf)) - set(maps.keys())
+
+    if len(not_in) > 0 :
+        meta['spec'] = sf.astype(str)
+    else:
+        meta['spec'] = [maps[freq] for freq in sf.astype(str).to_list()]
 
     ## extract plate/exp folder and experiment ids
     exp_path=meta.id.str.split('/', expand=True)
@@ -67,19 +74,22 @@ def excl_doublets(X, ppm, meta):
     # for each plate and spectrometer find ids with same numbers and filter for lw
     # keep USERA2 for all spectra to
     def cutlast(x):
+        print(x.folder.iloc[0])
         ids = x.exp_id.astype(str).str[:-1]
         cs = ids.value_counts()
         csre = cs.loc[cs > 1]
         indic = np.ones(x.shape[0])
         ids1=x.USERA2.values
-        u2ids=[]
-        u2ids_idx=[]
+        #u2ids=[]
+        #u2ids_idx=[]
         for i in range(csre.shape[0]):
             iresp = np.where((ids.values == csre.index[i]))[0]
             u2=np.unique(x.USERA2[iresp].values)
             u2u=u2[u2 != '']
             if len(u2u) > 1 :
                 raise Exception('ID in USERA2 not unique.')
+            if len(u2u) ==0 :
+                u2u='uknwn_rerun'+str(i)
             ids1[iresp]=u2u
             #x.iloc[iresp]['USERA2']=u2u[0]
             #u2ids.append(u2u[0])
@@ -96,8 +106,9 @@ def excl_doublets(X, ppm, meta):
 
     # mms=meta.groupby(['spec', 'folder'])
     # mms.groups.keys()
-    # x = mms.get_group(('ivdr02', 'barwin20_IVDR02_BARWINp08_111120'))
-    #test=cutlast(x)
+    # x = mms.get_group(('600.59', 'Autism_Urine_Rack02_RFT_080817'))
+    # test=cutlast(x)
+    # test.keep_rerun.value_counts()
 
     meta = meta.groupby(['spec', 'folder']).apply(cutlast)
     #meta.groups.keys()

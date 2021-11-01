@@ -3,6 +3,8 @@
 
 # x=Xbl[4]
 # ppm=pp
+import numpy as np
+
 
 class BinarySearchTreeNode:
 
@@ -133,19 +135,26 @@ class bst_search:
         plt.plot(self.bt.ppm, ((xs) / np.max(xs)), color=ecol)
 #
 
-excl=[36, 921]
+
 sp=[]
-for i in range(0, Xbl.shape[0]):
-    if i not in excl:
-        xs = Xbl[i]
+le=[]
+for i in range(0, Xn.shape[0]):
+        xs = Xn[i]
         ss = BinarySearchTreeNode(xs, pp, depth=4, minle=1)
         ll = bst_search(ss)
         ll.adma()
+        le.append(len(ll.P))
         sp.append(ll.P)
 
-np.where(np.array(sp) != 15)
+np.where(np.array(le) != 15)[0]
 
-out=np.array(sp)
+
+iid=np.where(np.array(le) == 15)[0]
+iid=iid.astype(np.int64)
+out=sp[iid]
+
+spf=[sp[i] for i in iid]
+out=np.array(spf)
 
 # perform clustering analysis
 from sklearn.cluster import AgglomerativeClustering
@@ -161,14 +170,25 @@ plot_dendrogram(model, truncate_mode='level', p=0)
 model1 = AgglomerativeClustering(distance_threshold=None, n_clusters=7,linkage="ward")
 model1.fit(td)
 #model.fit(X)
-pd.value_counts(model1.labels_)
+oo=pd.value_counts(model1.labels_)
 idx=np.where(model1.labels_==2)[0][0:20]
+
+import matplotlib._color_data as mcd
+fig, axs = plt.subplots(oo.shape[0], sharex=True, sharey=True)
+
 sn=[]
-for i in range(len(idx)):
-    sn.append(Xbl[idx[i]]) #/np.max(Xbl[idx[i]])
+for i in range(oo.shape[0]):
+    idx = np.where(model1.labels_ == oo.index[i])[0]
+    xq1=np.quantile(Xn[idx]/np.max(Xn[idx], 1)[..., np.newaxis], 0.25, axis=0)
+    xq2 = np.quantile(Xn[idx] / np.max(Xn[idx], 1)[..., np.newaxis], 0.5, axis=0)
+    xq3 = np.quantile(Xn[idx] / np.max(Xn[idx], 1)[..., np.newaxis], 0.75, axis=0)
+    axs[i].plot(pp, xq2, c='black')
+    axs[i].fill_between(pp, xq1, xq3, color=mcd.BASE_COLORS[list(mcd.BASE_COLORS.keys())[i]], alpha=0.2)
+    sn.append(xm) #/np.max(Xbl[idx[i]])
+
 plotting.ispec(np.array(sn), pp , theme='plotly_dark')
 
-
+#
 
 
 
@@ -231,13 +251,9 @@ def plot_dendrogram(model, **kwargs):
     plt.vlines(vlines,ymin=-0.05, ymax=0.98, color='red',alpha=0.4)
     plt.plot(pp, ((xs) / np.max(xs)), c='black')
     for i in range(1, len(vlines)):
-
         plt.axvspan(xmin=vlines[i-1], xmax=vlines[i], ymin=-0.05, ymax=0.48, color='red', alpha=0.1, fill='white')
-
     plt.plot(pp, ((xs) / np.max(xs)), c='black')
-
     text=nx.draw_networkx_labels(ll.G, ll.coord)
-
     for _, t in text.items():
         t.set_rotation('vertical')
     #plt.axvspan()

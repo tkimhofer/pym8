@@ -13,6 +13,22 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 tfd=tfp.distributions
 
+def _cov_cor(X, Y):
+    # x is pca scores matrix
+    # y is colmean centered matrix
+    if X.ndim == 1:
+        X = np.reshape(X, (len(X), 1))
+    if Y.ndim == 1:
+        Y = np.reshape(Y, (len(Y), 1))
+    if np.mean(Y[:, 0]) > 1.0e-10:
+        Y = (Y - np.mean(Y, 0))
+        X = (X - np.mean(X, 0))
+    xy = np.matmul(X.T, Y)
+    cov = xy / (X.shape[0] - 1)
+    a = np.sum(X ** 2, 0)[..., np.newaxis]
+    b = np.sum(Y ** 2, 0)[np.newaxis, ...]
+    cor = xy / np.sqrt(a * b)
+    return (cov, cor)
 
 
 
@@ -178,8 +194,6 @@ def get_idx(ppm, shift):
     return np.where(out==True)[0]
 
 
-
-
 def pp2d(X3, ppm1, ppm2, thres_abs='auto_40', mdist=3):
     """
     2D peak picking using skimage
@@ -226,8 +240,6 @@ def pp2d(X3, ppm1, ppm2, thres_abs='auto_40', mdist=3):
     return pl
 
 
-
-
 def est_noise (X3, pp1, pp2, nseg_p1=4, nseg_p2=10):
     """
     Estimate noise intensity threshold of 2D NMR spectra
@@ -261,9 +273,6 @@ def est_noise (X3, pp1, pp2, nseg_p1=4, nseg_p2=10):
         
     ff=tf.reduce_min(tf.convert_to_tensor(xsds), 0)
     return ff
-
-
-
 
 
 def calib_axis_2d(x, ppm1, ppm2):
@@ -313,7 +322,6 @@ def calibrate(X, ppm, signal='tsp'):
         X[i,:]=np.flip(np.interp(np.flip(ppm), np.flip(ppm_new[i,:]), np.flip(X[i,:])))
     
     return X
-
 
 
 def importJres(p1, acqus, wf2=tf.signal.hann_window, wf1=tf.signal.hann_window, pad='none'):
@@ -377,7 +385,6 @@ def importJres(p1, acqus, wf2=tf.signal.hann_window, wf1=tf.signal.hann_window, 
     smag=tf.math.sqrt(tf.math.pow(tf.math.imag(ss1), 2)+tf.math.pow(tf.math.real(ss1), 2))
     
     return smag
-
 
 
 def cppm(acqus, size):  
@@ -449,7 +456,6 @@ def exp_win(n=100, dtype=tf.float32, lb=0.3):
     
     return win
     
-
 
 def sin_win(n, dtype):
     """
