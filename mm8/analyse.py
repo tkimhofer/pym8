@@ -26,7 +26,7 @@ class stocsy:
         self.X = X
         self.ppm = ppm
 
-    def trace(self, d, shift=[0,10], interactive=True):
+    def trace(self, d, shift=[0,10], interactive=False, spectra=True):
         """
         Perform STOCSY analysis
         
@@ -73,16 +73,53 @@ class stocsy:
             return fig
 
         else:
-            dd=pd.DataFrame({'ppm':np.squeeze(self.ppm), 'cov':np.squeeze(xcov), 'cor':np.abs(np.squeeze(xcor))})
-            idx_ppm=np.where((dd.ppm>=shift[0]) & (dd.ppm <= shift[1]))[0]
-            dd=dd.iloc[idx_ppm]
-            dd['fac']='STOCSY: d='+str(d)+' ppm'+', n='+ str(self.X.shape[0])
-            
-            rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
-            
-            g=pn.ggplot(dd, pn.aes(x='ppm', y='cov', color='cor'))+pn.geom_line()+pn.scale_x_reverse()+pn.scale_colour_gradientn(colors=rainbow, limits=[0,1])+pn.theme_bw()+pn.labs(color='r(X,d)')+ pn.scale_y_continuous(labels=scientific_format(digits=2))+pn.facet_wrap('~fac')
-            
-        return(g)
+            from matplotlib.collections import LineCollection
+            from matplotlib.colors import ListedColormap, BoundaryNorm
+            import matplotlib.pyplot as plt
+            x=np.squeeze(self.ppm)
+            y=np.squeeze(xcov)
+            z=np.abs(np.squeeze(xcor))
+            xsub=self.X
+
+            points = np.array([x, y]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            # Create a continuous norm to map from data points to colors
+            norm = plt.Normalize(z.min(), z.max())
+            lc = LineCollection(segments, cmap='rainbow', norm=norm)
+            # Set the values used for colormapping
+            lc.set_array(z)
+            lc.set_linewidth(2)
+
+            if spectra:
+                fig, axs = plt.subplots(2, 1, sharex=True)
+                line = axs[0].add_collection(lc)
+                fig.colorbar(line, ax=axs)
+                axs[0].set_xlim(x.max() * 1.05, (x.min() - (x.min() * .05)))
+                axs[0].set_ylim(y.min() * 1.1, y.max() * 1.1)
+                axs[0].vlines(d, ymin=(y.min() * 1.1), ymax=(y.max() * 1.1), linestyles='dotted', label='driver')
+                axs[1].plot(x, xsub.T, c='black', linewidth=0.3)
+                axs[1].vlines(d, ymin=(xsub.min() * 1.1), ymax=(xsub.max() * 1.1), linestyles='dotted', label='driver',
+                              colors='red')
+            else:
+                fig, axs = plt.subplots(1, 1)
+                line = axs.add_collection(lc)
+                fig.colorbar(line, ax=axs)
+                axs.set_xlim(x.max() * 1.05, (x.min() - (x.min() * .05)))
+                axs.set_ylim(y.min() * 1.1, y.max() * 1.1)
+                axs.vlines(d, ymin=(y.min() * 1.1), ymax=(y.max() * 1.1), linestyles='dotted', label='driver')
+
+            return (axs, fig)
+            #
+            # dd=pd.DataFrame({'ppm':np.squeeze(self.ppm), 'cov':np.squeeze(xcov), 'cor':np.abs(np.squeeze(xcor))})
+            # idx_ppm=np.where((dd.ppm>=shift[0]) & (dd.ppm <= shift[1]))[0]
+            # dd=dd.iloc[idx_ppm]
+            # dd['fac']='STOCSY: d='+str(d)+' ppm'+', n='+ str(self.X.shape[0])
+            #
+            # rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
+            #
+            # g=pn.ggplot(dd, pn.aes(x='ppm', y='cov', color='cor'))+pn.geom_line()+pn.scale_x_reverse()+pn.scale_colour_gradientn(colors=rainbow, limits=[0,1])+pn.theme_bw()+pn.labs(color='r(X,d)')+ pn.scale_y_continuous(labels=scientific_format(digits=2))+pn.facet_wrap('~fac')
+            #
+
         
         
 
@@ -221,6 +258,9 @@ class pca:
         return fg
     
       def plot_load(self, pc=1, shift=[0, 10]):
+        from matplotlib.collections import LineCollection
+        from matplotlib.colors import ListedColormap, BoundaryNorm
+        import matplotlib.pyplot as plt
         """
         Plot statistical reconstruction of PCA loadings 
           
@@ -233,23 +273,38 @@ class pca:
        
          # print(shift)
         shift=np.sort(shift)
-           
-        # print(x)
-        # print(self.Xcor)
-        # print(self.Xcov)
-       
         x=self.ppm
         y=self.Xcov[pc,:]
         z=self.Xcor[pc,:]
         idx=np.where((x>=shift[0]) & (x <= shift[1]))[0]
         x=x[idx]
         y=y[idx]
-        z=z[idx]
-       
-        df=pd.DataFrame({'ppm':x, 'cov':y, 'cor':np.abs(z)})
-        df['fac']='PCA: p'+str(pc)
-       
-        rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
-        g=pn.ggplot(pn.aes(x='ppm', y='cov', color='cor'), data=df)+pn.geom_line()+pn.scale_colour_gradientn(colors=rainbow, limits=[0,1])+pn.theme_bw()+pn.scale_x_reverse()+ pn.scale_y_continuous(labels=scientific_format(digits=2))+pn.facet_wrap('~fac')+pn.labs(color='|r|')
-        return(g)
+        z=np.abs(z[idx])
+        xsub=self.X[:,idx]
+
+        fig, axs = plt.subplots(2,1, sharex=True)
+        points = np.array([x, y]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        # Create a continuous norm to map from data points to colors
+        norm = plt.Normalize(z.min(), z.max())
+        lc = LineCollection(segments, cmap='rainbow', norm=norm)
+        # Set the values used for colormapping
+        lc.set_array(z)
+        lc.set_linewidth(2)
+        line = axs[0].add_collection(lc)
+        fig.colorbar(line, ax=axs)
+        axs[0].set_xlim(x.max() * 1.05, (x.min() -x.min() * .05))
+        axs[0].set_ylim(y.min() * 1.1, y.max() * 1.1)
+
+        axs[1].plot(x, xsub.T, c='black', linewidth=0.3)
+
+        return (axs, fig)
+
+        #
+        # df=pd.DataFrame({'ppm':x, 'cov':y, 'cor':np.abs(z)})
+        # df['fac']='PCA: p'+str(pc)
+        #
+        # rainbow=["#0066FF",  "#00FF66",  "#CCFF00", "#FF0000", "#CC00FF"]
+        # g=pn.ggplot(pn.aes(x='ppm', y='cov', color='cor'), data=df)+pn.geom_line()+pn.scale_colour_gradientn(colors=rainbow, limits=[0,1])+pn.theme_bw()+pn.scale_x_reverse()+ pn.scale_y_continuous(labels=scientific_format(digits=2))+pn.facet_wrap('~fac')+pn.labs(color='|r|')
+        # return(g)
 
