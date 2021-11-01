@@ -58,7 +58,7 @@ class stocsy:
 
         idx=np.argmin(np.abs(self.ppm-d))
         y=np.reshape(self.X[:,idx], (np.shape(self.X)[0], 1))
-        xcov, xcor = cov_cor(y, self.X)  
+        xcov, xcor = _cov_cor(y, self.X)
         
         if interactive:
 
