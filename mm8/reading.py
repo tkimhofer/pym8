@@ -188,8 +188,8 @@ def import1d_procs(flist, exp_type, eretic=True):
         ere.index = meta.index
         meta = pd.concat([meta, ere], axis=1)
 
-    eres = meta.eretic_factor.values[..., np.newaxis]
-    smat = smat / eres
+        eres = meta.eretic_factor.values[..., np.newaxis]
+        smat = smat / eres
 
     print('Experiments read-in: ' + str(meta.shape[0]))
     return (smat, ppm_ord, meta)
