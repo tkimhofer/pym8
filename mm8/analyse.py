@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import plotnine as pn
 from mizani.formatters import scientific_format
-
+import mm8.utility
 
 class stocsy:
     """
@@ -39,26 +39,10 @@ class stocsy:
         """
         shift=np.sort(shift)
 
-        def _cov_cor(X, Y):
-            # x is pca scores matrix
-            # y is colmean centered matrix
-            if X.ndim == 1:
-                X = np.reshape(X, (len(X), 1))
-            if Y.ndim == 1:
-                Y = np.reshape(Y, (len(Y), 1))
-            if np.mean(Y[:, 0]) > 1.0e-10:
-                Y = (Y - np.mean(Y, 0))
-                X = (X - np.mean(X, 0))
-            xy = np.matmul(X.T, Y)
-            cov = xy / (X.shape[0] - 1)
-            a = np.sum(X ** 2, 0)[..., np.newaxis]
-            b = np.sum(Y ** 2, 0)[np.newaxis, ...]
-            cor = xy / np.sqrt(a * b)
-            return (cov, cor)
 
         idx=np.argmin(np.abs(self.ppm-d))
         y=np.reshape(self.X[:,idx], (np.shape(self.X)[0], 1))
-        xcov, xcor = _cov_cor(y, self.X)
+        xcov, xcor = mm8.utility._cov_cor(y, self.X)
         
         if interactive:
 
@@ -90,11 +74,12 @@ class stocsy:
             lc.set_array(z)
             lc.set_linewidth(2)
 
+            dd = (x.max() - x.min()) / 30
             if spectra:
                 fig, axs = plt.subplots(2, 1, sharex=True)
                 line = axs[0].add_collection(lc)
                 fig.colorbar(line, ax=axs)
-                axs[0].set_xlim(x.max() * 1.05, (x.min() - (x.min() * .05)))
+                axs[0].set_xlim(x.max() + dd, (x.min() - dd))
                 axs[0].set_ylim(y.min() * 1.1, y.max() * 1.1)
                 axs[0].vlines(d, ymin=(y.min() * 1.1), ymax=(y.max() * 1.1), linestyles='dotted', label='driver')
                 axs[1].plot(x, xsub.T, c='black', linewidth=0.3)
@@ -104,7 +89,7 @@ class stocsy:
                 fig, axs = plt.subplots(1, 1)
                 line = axs.add_collection(lc)
                 fig.colorbar(line, ax=axs)
-                axs.set_xlim(x.max() * 1.05, (x.min() - (x.min() * .05)))
+                axs.set_xlim(x.max() +dd, (x.min() - dd))
                 axs.set_ylim(y.min() * 1.1, y.max() * 1.1)
                 axs.vlines(d, ymin=(y.min() * 1.1), ymax=(y.max() * 1.1), linestyles='dotted', label='driver')
 
@@ -171,30 +156,14 @@ class pca:
             r2.append((np.sum(xc**2)/tvar)*100)
         self.r2=r2
 
-        def _cov_cor(X, Y):
-            # x is pca scores matrix
-            # y is colmean centered matrix
-            if X.ndim == 1:
-                X = np.reshape(X, (len(X), 1))
-            if Y.ndim == 1:
-                Y = np.reshape(Y, (len(Y), 1))
-            if np.mean(Y[:, 0]) > 1.0e-10:
-                Y = (Y - np.mean(Y, 0))
-                X = (X - np.mean(X, 0))
-            xy = np.matmul(X.T, Y)
-            cov = xy / (X.shape[0] - 1)
-            a = np.sum(X ** 2, 0)[..., np.newaxis]
-            b = np.sum(Y ** 2, 0)[np.newaxis, ...]
-            cor = xy / np.sqrt(a * b)
-            return (cov, cor)
 
-        xcov, xcor = _cov_cor(self.t, self.X)
+        xcov, xcor = mm8.utility._cov_cor(self.t, self.X)
            
         self.Xcov=xcov
         self.Xcor=xcor
        
        
-      def plot_scores(self, an , pc=[1, 2], hue=None, legend_loc='right'):
+      def plot_scores(self, an , pc=[1, 2], hue=None, labs=None, legend_loc='right'):
            # methods: plot_scores, plot_load
         from scipy.stats import chi2
         import seaborn as sns
@@ -205,6 +174,7 @@ class pca:
               an: Pandas DataFrame containig colouring variable as column
               pc: List of indices of principal components, starting at 1, length of two
               hue: Column name in an of colouring variable
+              labs: None or list of strings containing scores plot labels
               legend_loc: Legend locatoin given as string ('right', 'left', 
         Returns:
               plotting object
@@ -219,7 +189,6 @@ class pca:
             #return Null
        
         ds=pd.concat([df.reset_index(drop=True), an.reset_index(drop=True)], axis=1)
-        print(ds)
         #ds=ds.melt(id_vars=an.columns.values)
         #ds=ds.loc[ds.variable.str.contains('t'+str(pc[0])+"|t"+str(pc[1]))]
        
@@ -252,7 +221,11 @@ class pca:
        
         fg.axes[0][0].set_xlabel('t'+str(pc[0])+' ('+str(np.round(self.r2[pc[0]-1],1))+'%)')
         fg.axes[0,0].set_ylabel('t'+str(pc[1])+' ('+str(np.round(self.r2[pc[1]-1],1))+'%)')
-       
+
+        if labs is not None:
+            if (len(labs) != len(x)):  raise ValueError('Check length of labs')
+            for i in range(len(labs)):
+                fg.axes[0,0].annotate(labs[i], (x[i], y[i]))
         fg.add_legend(loc=legend_loc)
     
         return fg
@@ -293,7 +266,8 @@ class pca:
         lc.set_linewidth(2)
         line = axs[0].add_collection(lc)
         fig.colorbar(line, ax=axs)
-        axs[0].set_xlim(x.max() * 1.05, (x.min() -x.min() * .05))
+        dd = (x.max() - x.min()) / 30
+        axs[0].set_xlim(x.max() +dd, (x.min() - dd))
         axs[0].set_ylim(y.min() * 1.1, y.max() * 1.1)
 
         axs[1].plot(x, xsub.T, c='black', linewidth=0.3)
