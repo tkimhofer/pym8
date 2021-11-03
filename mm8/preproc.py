@@ -209,7 +209,7 @@ def preproc_qc(X, ppm, meta, multiproc=True, thres_lw=1.2):
     # signal to noise estimation
     noi = list()
     for i in range(X.shape[0]):
-        noi.append(np.round(noise(Xbl[i], ppm, sh=[10, 10.1])))
+        noi.append(np.round(noise(X[i], ppm, sh=[10, 10.1])))
 
     sino_tsp = tsp / noi
     signal_med = np.quantile(Xbl, 0.25, axis=1)

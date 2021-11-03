@@ -12,6 +12,7 @@ import nmrglue as ng
 from scipy import interpolate
 import tensorflow as tf
 import sys
+import re
 import mm8.utility
 
 

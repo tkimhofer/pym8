@@ -11,6 +11,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import diags
 import tensorflow as tf
 import tensorflow_probability as tfp
+
 tfd=tfp.distributions
 
 def _cov_cor(X, Y):
@@ -287,8 +288,8 @@ def calib_axis_2d(x, ppm1, ppm2):
         Calibrated chemical shift arrays: ppm1, ppm2
     """
     
-    id1=get_idx(ppm1, [-10,10])[0]
-    id2=get_idx(ppm2, [-0.1, 0.1])[0]
+    id1=get_idx(ppm1, [-10,10])
+    id2=get_idx(ppm2, [-0.1, 0.1])
     
     xs=x[id1, :]
     xs=xs[:, id2]
