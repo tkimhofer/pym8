@@ -27,7 +27,7 @@ idx=np.where((Y==1) | (Y==2))[0]
 X=X[idx]
 y=Y[idx]
 Xs=X
-Ys=y
+Ys=Y
 
 mod=opls(Xs, Ys,  cv={'type': 'mc', 'f': 2 / 3, 'k': 20, 'repl': False})
 
@@ -81,14 +81,9 @@ idx=np.where((Y==1) | (Y==2))[0]
 X=X[idx]
 Y=Y[idx]
 Xs=X
-Ys=Y
-
+Ys=np.int64(Y)
+Y=Ys
 _check_Y(Ys)
-
-
-mod=opls(X, Y, cv={'type': 'mc', 'f': 2 / 3, 'k': 2000, 'repl': False})
-mod.run_da()
-mod.plot_scores()
 
 
 
@@ -180,11 +175,18 @@ x=np.squeeze(mod.cvv_t_mean[:,0])
 y=np.squeeze(mod.cvt_t_orth_mean[i_orth][:,0])
 plt.scatter(x, y, c=Ys)
 
-cv={'type': 'mc', 'f': 2 / 3, 'k': 20, 'repl': False}
+ymap={1:'high', 0:'low'}
+YY=[ymap[x] for x in Y]
+
+cv={'type': 'mc', 'f': 2 / 3, 'k': 50, 'repl': False}
+mod=opls(X, YY, cv=cv)
+mod.run_da()
+mod.plot_scores(mf=5)
+
+
 
 class opls:
     def __init__(self, X, Y, cv={'type': 'mc', 'f': 2 / 3, 'k': 2, 'repl': False}, eps=10e-10):
-
         self.yinfo=_check_Y(Y)
         # NIPALS stop crit
         self.eps = 10e-10
@@ -193,11 +195,14 @@ class opls:
         self.xmean = np.mean(X, 0)
         self.xsd = np.std(X, 0)
         self.Xs = (X - self.xmean) / self.xsd
-        self.Y = Y
-        self.Ymean = np.mean(Y)
-        self.Ysd = np.std(Y)
-        self.Ys = ((self.Y - self.Ymean) / self.Ysd)[..., np.newaxis]
-        self.ymap = pd.crosstab(self.yinfo[0], self.Ys[:, 0])
+        self.Y=self.yinfo[5]
+        # if self.Y.ndim ==1:
+        #     self.Y = self.Y[..., np.newaxis]
+        # else: self.Y = Y
+        self.Ymean = np.mean(self.yinfo[0])
+        self.Ysd = np.std(self.yinfo[0])
+        self.Ys = ((self.yinfo[0] - self.Ymean) / self.Ysd)
+        self.ymap = self.yinfo[4]
 
         # define cv sets
         cv['n']= Xs.shape[0]
@@ -242,9 +247,6 @@ class opls:
         self.auc=[]
         self.pc=0
         self.oc=0
-
-
-
     def _nipals_comp(self, orth=True, verbose=0):
         #u = ys
         if verbose==1: print('Assigning X to cv sets')
@@ -379,21 +381,18 @@ class opls:
             #self.cvv_t.append(val_t); self.cvv_t_mean.append(np.nanmean(val_t, 1, keepdims=True)); self.cvv_t_sd.append(np.nanstd(val_t, 1, keepdims=True))
             self.cvt_p.append(p_t); self.cvt_p_mean.append(np.nanmean(p_t, 0)); self.cvt_p_sd.append(np.nanstd(p_t, 0))
             self.cvv_xres=Rn
-
-
     # def _press(y, y_hat):
     #     return np.sum((y - y_hat) ** 2) / np.sum((y - np.mean(y)) ** 2)
     def _r2(y, y_hat):
         return 1 - (np.sum((y - y_hat) ** 2) / np.sum((y - np.mean(y)) ** 2))
-
     def auroc(self):
         # predictive component
         from sklearn import metrics
-        fpr, tpr, thresholds = metrics.roc_curve(self.Ys[:, 0], self.cvv_t_pred_eval[:, 0],
+        idx=np.where(~np.isnan(self.cvv_t_pred_eval[:, 0]))[0]
+        fpr, tpr, thresholds = metrics.roc_curve(self.yinfo[0][idx, 0], self.cvv_t_pred_eval[idx, 0],
                                                  pos_label=self.ymap.columns[1])
         self.auc.append(metrics.auc(fpr, tpr))
         return self.auc[len(self.auc)-1]
-
     def run_da(self):
         auc = 1;
         c = 1
@@ -404,65 +403,55 @@ class opls:
             auc = mod.auroc()
             print('done')
             c += 1
-
     def plot_scores(self, torth=1, tpred=1, mean=True, cv=True, mf=300):
         import matplotlib._color_data as mcd
-
         cdict = dict(zip(self.yinfo[3], list(mcd.TABLEAU_COLORS)[0:len(self.yinfo[3])]))
         x = np.squeeze(self.cvv_t_mean[tpred - 1][:, 0])
         x_sd = np.squeeze(np.array(self.cvt_t_sd[tpred - 1][:, 0]))
-        y = np.squeeze(self.cvv_t_orth_mean[torth][:, 0])
-        y_sd = np.squeeze(np.array(self.cvt_t_orth_sd[torth][:, 0]))
+        y = np.squeeze(self.cvv_t_orth_mean[torth-1][:, 0])
+        y_sd = np.squeeze(np.array(self.cvt_t_orth_sd[torth-1][:, 0]))
 
         # calculate ellipse
-        el = ellipse(x, y, alpha=0.95)
+        el = self.ellipse(x, y, alpha=0.95)
 
         ax = plt.subplot()
         ax.axhline(0, color='black', linewidth=0.3)
         ax.axvline(0, color='black', linewidth=0.3)
         ax.plot(el[0], el[1], color='gray', linewidth=0.5, linestyle='dotted')
-
-        # ax = plt.facet_axis(0, 0)
-
         ax.set_xlabel('t_pred' + str(tpred))  # +' ('+str(self.r2[pc[0]-1])+'%)')
         ax.set_ylabel('t_orth' + str(torth))  # +' ('+str(self.r2[pc[1]-1])+'%)')
 
         for i in self.yinfo[3]:
-            ix = np.where(self.yinfo[0] == i)
+            ix = np.where(self.Y[:,0] == i)
             ax.scatter(x[ix], y[ix], c=cdict[i], label=i)
-        ax.legend()
+
 
         iid = np.where(x_sd > y_sd)[0].tolist()
         iis = np.where(~(x_sd > y_sd))[0].tolist()
         ax.scatter(x[iid], y[iid], s=np.array(x_sd[iid]) * mf, edgecolors='red', label='sd pred', c='none')
         ax.scatter(x, y, s=np.array(y_sd) * mf, edgecolors='green', label='sd orth', c='none')
         ax.scatter(x[iis], y[iis], s=np.array(x_sd[iis]) * mf, edgecolors='red', c='none')
-
+        ax.legend()
         n = self.cvv_t[0].shape[0]
 
         for i in range(n):
             print(i)
             x1 = self.cvv_t[0][i, :]
             x2 = self.cvv_t_orth[0][i, :]
-
-            plt.scatter(x1, x2)
-
-            x=x1
-            y=x2
             idx = ~np.isnan(x1)
             x2 = x2[idx]
             x1 = x1[idx]
-            plt.scatter(x1, x2)
 
-            el = ellipse(x1, x2, alpha=0.95)
-            plt.plot(el[0]+np.mean(x1), el[1]+np.mean(x2), color='gray', linewidth=0.5, linestyle='dotted')
+            el = self.ellipse(x2, x1, alpha=0.95)
+            #plt.plot(el[0], el[1], c='black')
+            #plt.plot(el[0]+np.mean(x1), el[1]+np.mean(x2), color='gray', linewidth=0.5, linestyle='dotted')
             #plt.plot(el[0]+np.mean(x1), el[1]+np.mean(x2))
             ax.plot(el[0]+np.mean(x1), el[1]+np.mean(x2), color='gray', linewidth=0.5, linestyle='dotted')
 
         return ax
 
-    def ellipse(x, y, alpha=0.95):
-        plt.scatter(x, y)
+    def ellipse(self, x, y, alpha=0.95):
+        from scipy.stats import chi2
         theta = np.concatenate((np.linspace(-np.pi, np.pi, 50), np.linspace(np.pi, -np.pi, 50)))
         circle = np.array((np.cos(theta), np.sin(theta)))
         cov = np.cov(x, y)
@@ -473,8 +462,7 @@ class opls:
 
         el_x = a * np.cos(t)
         el_y = b * np.sin(t)
-
-        plt.scatter(el_x, el_y)
+        #plt.scatter(el_x, el_y)
         return el_x, el_y
 
 
@@ -629,16 +617,31 @@ sens_spec(y, yh)
 
 _check_Y(Y)
 
+
+
 def _check_Y(y):
+
+    yori=y
+    ymap=None
+    if isinstance(y, list):
+        y=np.array(y)
+        yori=np.array(yori)
+
     if (y.ndim > 1 and y.shape[1] > 1):
         raise ValueError('Multi Y not allowed')
     else:
         if y.ndim == 1:
+            if isinstance(y, np.ndarray):
+                y = y[..., np.newaxis]
+                yori=yori[..., np.newaxis]
+
             if isinstance(y, list):
                 y = np.array(y)[..., np.newaxis]
+                yori = np.array(yori)[..., np.newaxis]
             else:
                 if isinstance(y, pd.Series):
                     y = np.array(y)[..., np.newaxis]
+                    yori = np.array(yori)[..., np.newaxis]
 
             if not isinstance(y, np.ndarray):
                 raise ValueError('Proved numpy array or list.')
@@ -650,19 +653,27 @@ def _check_Y(y):
         if yle == 1:
             raise ValueError('Y has only a single level.')
 
-        if (dkind in ['i', 'f', 'u']) & (yle > 2):
-            kind = 'R'
-            y = y.astype(float)
+        if (dkind in ['i', 'f', 'u']):
+            if (yle > 2):
+                kind = 'R'
+                y = y.astype(float)
+            if (yle == 2):
+                kind = 'DA'
+                y = y.astype(float)
+
 
         else:
             if (dkind in ['b', 'S', 'U']) | (yle == 2):
                 kind = 'DA'
-                y = y.astype(float)
+
+                y = (y==uy[0]).astype(int)
+                ymap = pd.crosstab(np.squeeze(yori), np.squeeze(y))
             else:
                 raise ValueError('Check data type of Y')
 
-    return (y, kind, y.shape, uy)
+    return (y, kind, y.shape, uy, ymap, yori)
 
+_check_Y(YY)
 
 def pred(self):
 
