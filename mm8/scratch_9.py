@@ -203,7 +203,6 @@ class opls:
         self.Ysd = np.std(self.yinfo[0])
         self.Ys = ((self.yinfo[0] - self.Ymean) / self.Ysd)
         self.ymap = self.yinfo[4]
-
         # define cv sets
         cv['n']= Xs.shape[0]
         self.cv = cv

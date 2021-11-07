@@ -1,7 +1,10 @@
 # cv - opls da
-
+import sys
+sys.path.insert(0, "/Users/torbenkimhofer/py/mm8")
+import mm8
 import numpy as np
 import pandas as pd
+
 
 
 def _scale(X):

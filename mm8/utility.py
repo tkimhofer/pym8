@@ -14,6 +14,34 @@ import tensorflow_probability as tfp
 
 tfd=tfp.distributions
 
+
+
+
+def _rho(x, y):
+    # rank correlation
+    xle=len(x)
+    if xle != len(y):
+        raise ValueError('Shape mismatch input')
+
+    xu = np.unique(x, return_inverse=True)
+    yu = np.unique(y,return_inverse=True)
+    xu_rank = np.argsort(xu[0])
+    yu_rank = np.argsort(yu[0])
+
+    xut =xu_rank[xu[1]].astype(float)
+    yut = yu_rank[yu[1]].astype(float)
+
+    cv=np.cov(xut, yut)[0,1]
+    if cv != 0 :
+        return (cv, np.cov(xut, yut)[0,1] /(np.std(xut) * np.std(yut)))
+    else:
+        return (0, 0)
+
+    return (None, 1- ((np.sum((xut-yut)**2) * 6) / (xle*(xle**2-1))))
+
+
+
+
 def _cov_cor(X, Y):
     # x is pca scores matrix
     # y is colmean centered matrix
