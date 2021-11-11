@@ -3,6 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
+sp = subprocess.getoutput(cmd)
+out = sp.split('\n')
+
+
+find /Volumes/Torben_2/Sam_urine_021019 -name "*quant_report.xml"
+
+find /Volumes/Torben_2/Sam_urine_021019 -iname "*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="
+
 
 def _scale(X):
     xm = np.mean(X, 0)

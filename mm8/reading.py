@@ -57,7 +57,7 @@ def eretic_factor(mc):
 
 
 
-def list_exp(path, return_results=True, pr=True):
+def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     """
     List all NMR experiment files in directory
     
@@ -76,8 +76,22 @@ def list_exp(path, return_results=True, pr=True):
     df['exp']=out[1]
     df['exp']=df.exp.str.replace('.*<|>', '', regex=True)
     df['fid']=df.id.str.replace('/acqus.*', '', regex=True)
+
+
+    if bruker_fits:
+        cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
+        sp = subprocess.getoutput(cmd)
+        out = sp.split('\n')
+        bf=pd.DataFrame({'id': out})
+        outs=bf.id.str.split(':| *<QUANTIFICATION version="|">', expand=True)
+        bf['file']=outs.iloc[:,0]
+        bf['v'] = outs.iloc[:, 2]
+        bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
+        bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
+        out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
+
     
-    
+    # check if bruker fits and qc's are included
     fsize=list()
     mtime=list()
     # check if procs exists

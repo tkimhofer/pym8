@@ -12,7 +12,7 @@ import plotnine as pn
 from mizani.formatters import scientific_format
 import mm8.utility
 
-def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', trans=np.log):
+def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', title=''):
     """
         Correlation Heatmap
         Args:
@@ -21,7 +21,7 @@ def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', trans=np.log):
             val_excl: Observations values that are excluded from analysis (0 for Bruker fits)
             ct: Correlation type (rho for rank correlation or r for Pearson's correlation)
         Returns:
-            tuple of two: 1. tuple of ax, fig, 2: correlation matrix (numpy rank 2)
+            Tuple of two: 1. tuple of ax, fig, 2: correlation matrix (numpy rank 2)
     """
     import itertools
     import numpy as np
@@ -80,9 +80,8 @@ def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', trans=np.log):
     fig, ax = plt.subplots(tight_layout=True)
     heatmap = ax.pcolor(ps, cmap=plt.cm.rainbow, norm=Normalize(vmin=-1, vmax=1))
     fig.colorbar(heatmap)
-    #ax.set_title('hi')
+    ax.set_title(title)
 
-    # put the major ticks at the middle of each cell
     ax.set_xticks(np.arange(ps.shape[0])+0.5, minor=False)
     ax.set_yticks(np.arange(ps.shape[1])+0.5, minor=False)
     ax.set_xticklabels(labs[idx_keep], minor=False, rotation=90)
@@ -91,9 +90,7 @@ def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', trans=np.log):
     plt.show()
 
     return (fig, ax), ps
-    # want a more natural, table-like display
-    # ax.invert_yaxis()
-    # ax.xaxis.tick_top()
+
 
 class stocsy:
     """
