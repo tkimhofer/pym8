@@ -7,11 +7,11 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from sklearn.decomposition import PCA
-import seaborn as sns
+#import seaborn as sns
 from scipy.stats import chi2
 from matplotlib import cm
 import matplotlib.collections as mcoll
-import plotnine as pn
+# import plotnine as pn
 import tensorflow_probability as tfp
 
 import mm8.utility

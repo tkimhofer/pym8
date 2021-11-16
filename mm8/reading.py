@@ -11,13 +11,11 @@ import os
 import nmrglue as ng
 from scipy import interpolate
 import tensorflow as tf
-import sys
 import re
 import mm8.utility
-
+import xml.etree.ElementTree as xl
 
 def eretic_factor(mc):
-    import xml.etree.ElementTree as xl
     mf = mc.id.str.replace('acqus:.*', '', regex=True)
     ere = []
     ere_len=[]
@@ -33,29 +31,22 @@ def eretic_factor(mc):
                 fr[0][0][3].tag: float(fr[0][0][3].text),
                 fr[0][0][4].tag: fr[0][0][4].text,
                 fr[0][0][6][2].tag: list(fr[0][0][6][2].items())[0][1],
-                #fr[0][0][6][2].tag: fr[0][0][6][2].items()[0][1],
-                #fr[0][0][6][3].tag: float(fr[0][0][6][3].text), #
                 fr[0][1][0][0].tag: float(fr[0][1][0][0].text),
                 fr[0][0][6][5][10].tag: fr[0][0][6][5][10].text,
             }
             ere.append(inf)
-
         except:
             print("Not all exp contain file QuantFactorSample.xml ")
             inf=''
             ere.append(inf)
         ere_len.append(len(inf))
-
     # fill up where no eretic xml
     idx_repl=np.where(np.array(ere_len) != np.max(np.array(ere_len)))[0]
     rep=ere[np.where(np.array(ere_len) == np.max(np.array(ere_len)))[0][0]]
     rep = dict.fromkeys(rep, None)
     for i in range(len(idx_repl)):
         ere[idx_repl[i]]=rep
-
     return pd.DataFrame(ere)
-
-
 
 def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     """
@@ -78,17 +69,17 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     df['fid']=df.id.str.replace('/acqus.*', '', regex=True)
 
 
-    if bruker_fits:
-        cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
-        sp = subprocess.getoutput(cmd)
-        out = sp.split('\n')
-        bf=pd.DataFrame({'id': out})
-        outs=bf.id.str.split(':| *<QUANTIFICATION version="|">', expand=True)
-        bf['file']=outs.iloc[:,0]
-        bf['v'] = outs.iloc[:, 2]
-        bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
-        bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
-        out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
+    # if bruker_fits:
+        # cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
+        # sp = subprocess.getoutput(cmd)
+        # out = sp.split('\n')
+        # bf=pd.DataFrame({'id': out})
+        # outs=bf.id.str.split(':| *<QUANTIFICATION version="|">', expand=True)
+        # bf['file']=outs.iloc[:,0]
+        # bf['v'] = outs.iloc[:, 2]
+        # bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
+        # bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
+        # out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
 
     
     # check if bruker fits and qc's are included
@@ -121,14 +112,7 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     if return_results:
         return df
 
-
 def import1d_procs(flist, exp_type, eretic=True):
-    # import subprocess
-    import pandas as pd
-    import numpy as np
-    import os
-    import nmrglue as ng
-    import re
     """
     Imports 1D processed NMR spectra
 
@@ -139,9 +123,6 @@ def import1d_procs(flist, exp_type, eretic=True):
         Tuple of three: X, ppm, meta
     """
 
-    # idx=np.where(flist.exp==exp_type)[0]
-    # fexp=flist.iloc[idx,:].reset_index(drop=True)
-    # print('Experiments found: ' + str(len(idx)))
     fexp = flist.loc[flist.exp.isin(exp_type)].reset_index(drop=True)
 
     lacqus = []
@@ -149,8 +130,6 @@ def import1d_procs(flist, exp_type, eretic=True):
     idx_filter = []
     c = 0
     for i in range(fexp.shape[0]):
-        # print(i)
-
         f_path = os.path.join(fexp.loc[i, 'fid'], '') + 'pdata/1'
 
         p1 = f_path + '/1r'
@@ -177,7 +156,6 @@ def import1d_procs(flist, exp_type, eretic=True):
         lprocs.append(meta['procs'])
         idx_filter.append(c)
         c = c + 1
-        # exp.append((spec, ppm, meta))
 
     smat = smat[np.array(idx_filter), :]
     procs = pd.DataFrame(lprocs)
@@ -192,7 +170,6 @@ def import1d_procs(flist, exp_type, eretic=True):
     for i in range(len(ab)):
         dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
     meta['datetime'] = dtime
-
     if eretic:
         ere = eretic_factor(meta)
         tsp_pos=ere.Artificial_Eretic_Position.dropna().unique()
@@ -202,10 +179,8 @@ def import1d_procs(flist, exp_type, eretic=True):
         ere.columns=ere.columns.str.lower()
         ere.index = meta.index
         meta = pd.concat([meta, ere], axis=1)
-
         eres = meta.eretic_factor.values[..., np.newaxis]
         smat = smat / eres
-
     print('Experiments read-in: ' + str(meta.shape[0]))
     return (smat, ppm_ord, meta)
 
@@ -241,9 +216,6 @@ def read1d2d_raw(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
             idx=np.where(exp1.uid==doubl[i])[0]
             idx_rm.append(idx[0::(len(idx))])
         exp1=exp1.drop(exp1.index[[np.array(idx_rm).ravel()]])
-    
-    
-    # remove doubles from exp2
     ct=exp2.uid.value_counts()>1
     doubl=ct.loc[ct].index
     
@@ -264,7 +236,7 @@ def read1d2d_raw(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
     exp1.columns=exp1.columns.str.replace('_x', '')
 
     # read in both data sets using 1D and 2D read functoins
-    X, ppm, met= import1d_procs(flist=exp1, exp_type=exps[0])
+    X, ppm, met= import1d_procs(flist=exp1, exp_type=exps[0], eretic=False)
     
     exp2=sxp.filter(regex=('_y$'))
     exp2.columns=exp2.columns.str.replace('_y', '')
@@ -286,20 +258,13 @@ def import2d_raw(flist, exp_type, calib=True, n_max=10000):
     Returns:
         Tuple of three: X, ppm1, ppm2
     """
-    
     idx=np.where(flist.exp==exp_type)[0]
-    # print('Experiments found: ' + str(len(idx)))
-    
     fexp=flist.iloc[idx,:].reset_index()
     if n_max < fexp.shape[0]:
         fexp=fexp.iloc[0:n_max,:]
     
     for i in range(fexp.shape[0]):
-        # print(i)
-        
-        fexp.loc[i, 'fid']
         spec, ppm1, ppm2= import2dJres(fexp.loc[i, 'fid'])
-        
         if i==0:
             ppm_ord1=ppm1
             ppm_ord2=ppm2
@@ -310,8 +275,6 @@ def import2d_raw(flist, exp_type, calib=True, n_max=10000):
          imat = interpolate.interp2d(ppm1, ppm2, spec.numpy().T, kind='cubic')
          xout=imat(ppm_ord1, ppm_ord2).T
          smat[:,:, i]=xout
-
-    
     return (smat, ppm_ord1, ppm_ord2)
 
 
@@ -326,8 +289,8 @@ def import2dJres(path):
     """
     acqus=ng.bruker.read_acqus_file(path)
     p1=path+('/ser')
-    jres=importJres(p1, acqus, pad='none')
-    ppm=cppm(acqus, jres.shape[1])
+    jres=mm8.utility.importJres(p1, acqus, pad='none')
+    ppm=mm8.utility.cppm(acqus, jres.shape[1])
     # align ppm
     idx=np.where((ppm>-0.2) & (ppm <0.2))[0]
     sub=jres.numpy()[:,idx]
@@ -357,7 +320,6 @@ def import2d_procs(flist, exp_type, calib=True, n_max=10000):
     """
     
     idx=np.where(flist.exp==exp_type)[0]
-    #print('Experiments found: ' + str(len(idx)))
     
     fexp=flist.iloc[idx,:].reset_index()
     if n_max < fexp.shape[0]:
@@ -366,8 +328,6 @@ def import2d_procs(flist, exp_type, calib=True, n_max=10000):
     lacqus=[]
     lprocs=[]
     for i in range(fexp.shape[0]):
-        #print(i)
-        
         f_path= os.path.join(fexp.loc[i, 'fid'], '')+'pdata/1'
         meta, spec=ng.bruker.read_pdata(f_path)
 
@@ -386,7 +346,7 @@ def import2d_procs(flist, exp_type, calib=True, n_max=10000):
         ppm1=np.linspace(SF01, SF01-SW, FTsize)
       
         if calib:
-            ppm1, ppm2 = calib_axis_2d(spec, ppm1, ppm2)
+            ppm1, ppm2 = mm8.utility.calib_axis_2d(spec, ppm1, ppm2)
         
         if i==0:
             ppm_ord1=np.flip(ppm1)
@@ -407,29 +367,27 @@ def import2d_procs(flist, exp_type, calib=True, n_max=10000):
     
     meta=pd.concat([acqus, procs], axis=1)
     meta['id']=fexp.id.values
-    
     meta.index=["s" + str(x) for x in meta.index]
-    
     meta['id']=fexp.id.values
     ab=np.split(meta._comments.values, '')[0]
     dtime=list()
     for i in range(len(ab)):
         dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
     meta['datetime']=dtime
-        
     print('Experiments read-in: ' + str(meta.shape[0]))
-    
     return (smat, ppm_ord1, ppm_ord2, meta)
 
 
 # load 1d and 2d in same go, order rows to match spectra
 def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
+    #ll = list_exp(path, return_results=True, pr=True, bruker_fits=True)
+    #exps=[['PROF_URINE_NOESY','PROF_MeOD_NOESY_ECD'], 'PROF_URINE_JRES']
     """
     Imports 1D and 2D processed NMR spectra
     
     Args:
         ll:  DataFrame of experiment information (see list_exp())
-        exps:   Ordered list of two: 1d and 2D experiment names (used for filtering)
+        exps:   Ordered list of two: names of 1d and 2D experiments ids used for filtering, e.g., ['PROF_URINE_NOESY', 'PROF_URINE_JRES']
         n_max: Maximum number of experiment read-ins (int)
     Returns:
         Tuple of seven: X, ppm, meta, X2, ppm1, ppm2, meta2
@@ -440,9 +398,15 @@ def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
     ll['eid']=out.str[1]
     ll['eiid']=ll.eid.str.replace('[0-9]$', 'u', regex=True)
     ll['uid']=ll.path +'/'+ ll.eiid
-    
-    exp1=ll.loc[ll.exp==exps[0]]
-    exp2=ll.loc[ll.exp==exps[1]]
+
+    if not isinstance(exps[0], list):
+        exps[0]=[exps[0]]
+
+    if not isinstance(exps[1], list):
+        exps[1] = [exps[1]]
+
+    exp1=ll.loc[ll.exp.isin(exps[0])]
+    exp2=ll.loc[ll.exp.isin(exps[1])]
    
     # remove doubles from exp1
     ct=exp1.uid.value_counts()>1
@@ -454,9 +418,6 @@ def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
             idx=np.where(exp1.uid==doubl[i])[0]
             idx_rm.append(idx[0::(len(idx))])
         exp1=exp1.drop(exp1.index[[np.array(idx_rm).ravel()]])
-    
-    
-    # remove doubles from exp2
     ct=exp2.uid.value_counts()>1
     doubl=ct.loc[ct].index
     
@@ -466,32 +427,22 @@ def read1d2d(ll, exps=['PROF_URINE_NOESY', 'PROF_URINE_JRES'], n_max=100):
             idx=np.where(exp2.uid==doubl[i])[0]
             idx_rm.append(idx[0::(len(idx))])
         exp2=exp2.drop(exp2.index[[np.array(idx_rm).ravel()]])
-     
-    # establish mapping for exp1 and exp2
     sxp = pd.merge(exp1, exp2, how='inner', on=['uid'])
-
     if n_max<sxp.shape[0]:
         sxp=sxp.iloc[0:n_max]
-    
     exp1=sxp.filter(regex=('_x$'))
     exp1.columns=exp1.columns.str.replace('_x', '')
-
-    # read in both data sets using 1D and 2D read functoins
-    print('hi')
-    X, ppm, met= import1d_procs(flist=exp1, exp_type=[exps[0]])
-    
+    X, ppm, met= import1d_procs(flist=exp1, exp_type=exps[0], eretic=False)
     exp2=sxp.filter(regex=('_y$'))
     exp2.columns=exp2.columns.str.replace('_y', '')
-    X2, ppm1, ppm2, meta2 =import2d_procs(exp2, exp_type=exps[1], n_max=10000)
+    X2, ppm1, ppm2, meta2 =import2d_procs(exp2, exp_type=exps[1][0], n_max=10000)
     
     return (X, ppm, met, X2, ppm1, ppm2, meta2)
     
-#path='/Users/torbenkimhofer/Desktop/glycStds/GlycStandards_Haptoglobin_310K_Pn_IVDR01_280421/1/'
-# read bruker fid from 1d
+
 def read1dFID(path, win, ret='fid', zf=2):
     """
     Import raw FID
-    
     Args:
         path:  Directory to acqus file
         win:   Window function (see utility module)
@@ -511,47 +462,29 @@ def read1dFID(path, win, ret='fid', zf=2):
         bo='>i4'
         
     dat = tf.cast(np.fromfile(p1, dtype=np.dtype(bo))*(2**nc), tf.float32)
-    
-    # conv to comples
     fid=tf.complex(real=dat[0::2], imag=dat[1::2])
-    
-    # remove digital filter
     gd=tf.cast(tf.math.ceil(tf.cast(acqus['acqus']['GRPDLY'], tf.float32)), tf.int32)
-    
     fid=fid[(gd+1):,]
-    
     if ret=='fid':
         return fid
-    
     wf=win(n=fid.shape[0], dtype=dat.dtype, lb=0.3)
     win_cpl=tf.complex(real=wf, imag=wf)
-    
     fwin=fid*win_cpl
-    
     if ret=='win':
         return fwin
-    
     opt2=tf.math.ceil(np.log2(tf.cast(fwin.shape[0], tf.float64)))
     p1=tf.abs(tf.math.pow(2, opt2)-fwin.shape[0])
     p=[[0, p1], [0, 0]]
     fwinp=tf.pad(fwin[..., tf.newaxis], p )
-    
     p=[[0, fwinp.shape[0]], [0, 0]]
     fwinpp=tf.squeeze(tf.pad(fwinp, p ))
-    
     if ret=='zf':
         return fwinpp
-    
     sp=tf.signal.fft(fwinpp)
     sps=tf.signal.fftshift(sp)
-    
-    
     if ret=='fft':
         return sps
-    
-    # # phasing
-    # h=sps[1::]-sps[0:-1]
-    
+
 # The objective function
 def sqrt_quadratic(x):
     """

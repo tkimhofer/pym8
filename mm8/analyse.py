@@ -8,9 +8,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.io as pio
-import plotnine as pn
+# import plotnine as pn
 from mizani.formatters import scientific_format
 import mm8.utility
+from scipy.stats import chi2
 
 def cor_heatmap(Xc, n_max=600, val_excl=0, ct='rho', title=''):
     """
@@ -109,7 +110,6 @@ class stocsy:
     def trace(self, d, shift=[0,10], interactive=False, spectra=True):
         """
         Perform STOCSY analysis
-        
         Args:
             d: Driver peak position (ppm)
             shift: Chemical shift range as list of length two
@@ -118,8 +118,6 @@ class stocsy:
             graphics object
         """
         shift=np.sort(shift)
-
-
         idx=np.argmin(np.abs(self.ppm-d))
         y=np.reshape(self.X[:,idx], (np.shape(self.X)[0], 1))
         xcov, xcor = mm8.utility._cov_cor(y, self.X)
@@ -245,7 +243,6 @@ class pca:
        
       def plot_scores(self, an , pc=[1, 2], hue=None, labs=None, legend_loc='right'):
            # methods: plot_scores, plot_load
-        from scipy.stats import chi2
         import seaborn as sns
         """
         Plot PCA scores (2D)
