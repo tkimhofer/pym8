@@ -212,6 +212,12 @@ class pca:
         self.scale=scale
         self.means=np.mean(X, 0)
         self.std=np.std(X, 0)
+
+        if any(self.std == 0):
+            print('Matrix contains columns with zero standard deviation - replacing these with eps = 1e-7')
+
+        self.std[self.std == 0]=1e-7
+
         self.Xsc=(self.X-self.means) / self.std
        
     
