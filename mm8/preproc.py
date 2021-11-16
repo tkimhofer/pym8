@@ -190,7 +190,7 @@ def preproc_qc(X, ppm, meta, multiproc=True, thres_lw=1.2):
     else:
         bls = []
         for i in range(X.shape[0]):
-            bls.append(baseline_als(X[i, xcut], lam=1e6, p=1e-4, niter=10))
+            bls.append(mm8.utility.baseline_als(X[i, xcut], lam=1e6, p=1e-4, niter=10))
     bls = np.array(bls)
     b_aliph = np.sum(bls[:, 0:len(idx1)], axis=1)
     b_arom = np.sum(bls[:, (len(idx1) + 1):], axis=1)
@@ -266,18 +266,18 @@ def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     #tol_ppm=tol_ppm.astype( dtype)
     #lac=[1.32, 1.38]
     bound=[cent_ppm-tol_ppm, cent_ppm+tol_ppm]
-    idx_ra=get_idx(ppm, bound)[0]
+    idx_ra=get_idx(ppm, bound)
     dppm=ppm[1]-ppm[0]
     
     Xs=X[:,idx_ra]
     sub=np.zeros((X.shape[0], len(idx_ra)))
     for i in range(X.shape[0]):
-        tt=baseline_als(Xs[i,:], lam=10000, p=0.0001, niter=niter_bl)
+        tt=mm8.utility.baseline_als(Xs[i,:], lam=10000, p=0.0001, niter=niter_bl)
         sub[i,:]=tt
     sub=Xs-sub
     sub=sub/np.max(sub, 1,  keepdims=True)*100
 
-    pa=tf.cast(doub(cent_ppm=np.max(bound)-(j_hz/600), jconst_hz=j_hz, lw=lw, mag=100., sf=600, out='ppm', shift=ppm[idx_ra]), dtype)
+    pa=tf.cast(mm8.utility.doub(cent_ppm=np.max(bound)-(j_hz/600), jconst_hz=j_hz, lw=lw, mag=100., sf=600, out='ppm', shift=ppm[idx_ra]), dtype)
     #plt.plot(ppm[idx_ra], pa)
     # cross correlation
     # shifting steps
@@ -325,8 +325,8 @@ def excise1d(X, ppm):
     Returns:
         Tuple of two: X, ppm
     """
-    idx_upf=get_idx(ppm, [0.25, 4.5])[0]
-    idx_downf=get_idx(ppm, [5, 10])[0]
+    idx_upf=get_idx(ppm, [0.25, 4.5])
+    idx_downf=get_idx(ppm, [5, 10])
     idx_keep= np.concatenate([idx_downf, idx_upf])
    
     Xc = X[:, idx_keep]
