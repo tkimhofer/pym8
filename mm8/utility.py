@@ -223,6 +223,79 @@ def get_idx(ppm, shift):
     return np.where(out==True)[0]
 
 
+def _max_stats(idx_max, idx_min, ppm, x, thr=10000):
+    def minmax(x):
+        out = x / np.max(np.abs(x))
+        return out
+
+    # for each max, get ppm distance to neighbouring min and intensity diffs
+    res=[]
+    for i in range(len(idx_max)):
+        id_min=(idx_max[i]-idx_min)
+        left = np.where(id_min > 0)[0]
+        right = np.where(id_min < 0)[0]
+
+        if(len(left)==0):
+            #il=None
+            continue
+        else:
+            il=idx_min[left[np.argsort(id_min[left])]][0]
+
+        if(len(right)==0):
+            #ir=None
+            continue
+        else:
+            ir=idx_min[right[np.argsort(-id_min[right])]][0]
+        res.append((idx_max[i], ir, il))
+
+    out=pd.DataFrame(ppm[res], columns=['max', 'min_ri', 'min_le'])
+    ac=[s[0] for s in res]
+    out['idx'] = ac
+    out['mint']=x[ac]
+    id=x[res]
+    aps=id[:,0][...,np.newaxis]-id[:,1:]
+    out['di_ri']=aps[:,0]
+    out['di_le']=aps[:,1]
+
+    out['si_ri']=np.abs(out['max']-out['min_ri'])
+    out['si_le']=np.abs(out['max']-out['min_le'])
+
+    thres = np.abs(minmax(np.log(1 / np.abs(out.mint)))) * thr
+    iid = ((out.di_le > thres) | (out.di_ri > thres)).values
+    #plt.scatter(ppm[out.idx.values[iid]], x[out.idx.values[iid]], c='red')
+    out['keep']=False
+    out['keep'].loc[iid]=True
+
+    return out
+
+
+def pp1d(x, ppm, mm=True):
+    """
+        1D peak picking based on 1st derivative
+
+        Args:
+            x: NMR spectrum
+            ppm: Chemical shift array for x
+            mm: Return dataframe with adjacency measures
+        Returns:
+            if mm is true, tuple of two: tuple of min max indices, dataframe with distances in ppm and intensity from max to min
+            if mm is false, tuple of two that is min and max indices
+    """
+    import numpy as np
+    d1=np.diff(x)
+    # zero crossing
+    idx_max = np.where((np.sign(d1[1:]) < 0) & (np.sign(d1[:-1]) > 0))[0] + 1
+    idx_min = np.where((np.sign(d1[1:]) > 0) & (np.sign(d1[:-1]) < 0))[0] + 1
+    # plt.plot(ppm, x, label='f')
+    # plt.scatter(ppm[idx_max], x[idx_max], s=10, c='orange')
+    # plt.scatter(ppm[idx_min], x[idx_min], s=10, c='cyan')
+    if mm:
+        tbl = _max_stats(idx_max, idx_min, ppm, x)
+        return ((idx_max, idx_min), tbl)
+    else:
+        return (idx_max, idx_min)
+
+
 def pp2d(X3, ppm1, ppm2, thres_abs='auto_40', mdist=3):
     """
     2D peak picking using skimage
