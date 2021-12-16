@@ -15,6 +15,11 @@ import tensorflow_probability as tfp
 tfd=tfp.distributions
 
 
+def flip(X, ppm, sh=[0.25, 4]):
+    # flip spectra (for exp that are not processed with ivdr methods)
+    idx=get_idx(ppm, sh)
+    X1=X*np.sign(np.sum(X[:,idx],1))[..., np.newaxis]
+    return X1
 
 
 def _rho(x, y):
@@ -248,11 +253,17 @@ def _max_stats(idx_max, idx_min, ppm, x, thr=10000):
             ir=idx_min[right[np.argsort(-id_min[right])]][0]
         res.append((idx_max[i], ir, il))
 
+    res = np.array(res)
     out=pd.DataFrame(ppm[res], columns=['max', 'min_ri', 'min_le'])
     ac=[s[0] for s in res]
     out['idx'] = ac
     out['mint']=x[ac]
     id=x[res]
+    # print(id.shape)
+    # print(out.shape)
+    # print(id)
+    out['rmin_int'] = id[:, 1]
+    out['lmin_int'] = id[:, 2]
     aps=id[:,0][...,np.newaxis]-id[:,1:]
     out['di_ri']=aps[:,0]
     out['di_le']=aps[:,1]
@@ -274,8 +285,8 @@ def pp1d(x, ppm, mm=True):
         1D peak picking based on 1st derivative
 
         Args:
-            x: NMR spectrum
-            ppm: Chemical shift array for x
+            x: numpy array, NMR spectrum
+            ppm: numpy array, matching chemical shift array for x
             mm: Return dataframe with adjacency measures
         Returns:
             if mm is true, tuple of two: tuple of min max indices, dataframe with distances in ppm and intensity from max to min
@@ -286,6 +297,8 @@ def pp1d(x, ppm, mm=True):
     # zero crossing
     idx_max = np.where((np.sign(d1[1:]) < 0) & (np.sign(d1[:-1]) > 0))[0] + 1
     idx_min = np.where((np.sign(d1[1:]) > 0) & (np.sign(d1[:-1]) < 0))[0] + 1
+
+    if (len(idx_max) == 0 and len(idx_min) ==0): raise ValueError('No local extrema found')
     # plt.plot(ppm, x, label='f')
     # plt.scatter(ppm[idx_max], x[idx_max], s=10, c='orange')
     # plt.scatter(ppm[idx_min], x[idx_min], s=10, c='cyan')
