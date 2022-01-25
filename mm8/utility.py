@@ -191,21 +191,21 @@ def baseline_als(y, lam, p, niter=10):
       z = spsolve(Z, w*y)
       w = p * (y > z) + (1-p) * (y < z)
     return z
-
-def doub(x, meta):
-    """
-    Create a doublet
-    Args:
-        x: Chemical shift array (rank 1)
-        shift: Chemical shift interval (list)
-    Returns:
-        1D array of ppm indices
-    """
-    sf=meta.get('procs').get('SF')
-    J=np.mean(abs(x.f1))
-    csh=np.mean(abs(x.f2))
-    out={'type':'d', 'ppm':csh, 'J':J, 'Int_max':np.mean(abs(x['max'])), 'peak_pos': [csh-(J/sf), csh+(J/sf)]}
-    return out
+#
+# def doub(x, meta):
+#     """
+#     Create a doublet
+#     Args:
+#         x: Chemical shift array (rank 1)
+#         shift: Chemical shift interval (list)
+#     Returns:
+#         1D array of ppm indices
+#     """
+#     sf=meta.get('procs').get('SF')
+#     J=np.mean(abs(x.f1))
+#     csh=np.mean(abs(x.f2))
+#     out={'type':'d', 'ppm':csh, 'J':J, 'Int_max':np.mean(abs(x['max'])), 'peak_pos': [csh-(J/sf), csh+(J/sf)]}
+#     return out
 
 def sing(x):
     #out={'type':'s', 'ppm':x.loc['f2'], 'J':0, 'Int_max':x.loc['max'], 'peak_pos': x.loc['f2']}

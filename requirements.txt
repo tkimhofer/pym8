@@ -4,8 +4,10 @@ numpy
 os
 nmrglue
 scipy
+tqdm
 tensorflow
 skimage
+seaborn
 matplotlib
 plotly
 

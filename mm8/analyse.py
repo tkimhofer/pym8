@@ -313,7 +313,7 @@ class pca:
     
         return fg
     
-      def plot_load(self, pc=1, shift=[0, 10]):
+      def plot_load(self, pc=0, shift=[0, 10]):
         from matplotlib.collections import LineCollection
         from matplotlib.colors import ListedColormap, BoundaryNorm
         import matplotlib.pyplot as plt

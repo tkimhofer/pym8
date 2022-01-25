@@ -19,6 +19,46 @@ import mm8.utility
 tfd=tfp.distributions
 tfb=tfp.bijectors
 
+def bline(X, lam=1e6, p=1e-4, niter=10, multiproc=True):
+    """
+            Baseline correction based on asymmetric least squares (ALS) regression
+
+            Args:
+                X: Spectral matrix (np array rank 2)
+                lam: second derivative constraint. Change this value cautiosly (!), the smaller this value the large the proportion of basline. Good results typically obtained with a value of 10e6
+                p: weighting constant for positive residuals. Change cautiously - larger values overemphasize positive intensities which can lead to unwanted baseline distortions. Good results typically obtained with a value of 1e-4
+                niter: number of iterations (<15 usually fine, larger values increase run time)
+                multiproc: parallel processing (joblib package, worker count: max cores - 2)
+            Returns:
+                X (baseline-corrected spectra, array rank 2)
+    """
+    if multiproc:
+        import multiprocessing
+        from joblib import Parallel, delayed
+        from tqdm import tqdm
+
+
+        def bl_par(i, X):
+            out = mm8.utility.baseline_als(X[i], lam=lam, p=p, niter=niter)
+            return out
+
+        ncore = multiprocessing.cpu_count() - 2
+        spec_seq = tqdm(np.arange(X.shape[0]))
+        bls = Parallel(n_jobs=ncore)(delayed(bl_par)(i, X) for i in spec_seq)
+        bls = np.array(bls)
+    else:
+        bls = []
+        for i in range(X.shape[0]):
+            bls.append(mm8.utility.baseline_als(X[i], lam=lam, p=p, niter=niter))
+    bls = np.array(bls)
+
+    Xbl = X - bls
+
+    return Xbl
+
+
+
+
 # identify and exclude re-runs
 
 def excl_doublets(X, ppm, meta):
@@ -315,19 +355,24 @@ def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     
 
 # excision of spectral areas
-def excise1d(X, ppm):
+def excise1d(X, ppm, shifts=[[8, 4.5], [5, 9.5]]):
     """
     Excist spectral intervals using pre-defined limits: Kept is 0.25- 4.5 ppm and 5-10 ppm
     
     Args:
         X: NMR data array (rank 1 or 2)
         ppm: Chemical shift array (rank 1)
+        shifts: list of ppm intervals that should be kept (!not removed!)
     Returns:
         Tuple of two: X, ppm
     """
-    idx_upf=get_idx(ppm, [0.25, 4.5])
-    idx_downf=get_idx(ppm, [5, 10])
-    idx_keep= np.concatenate([idx_downf, idx_upf])
+
+    idx_keep =[]
+    for i in range(len(shifts)):
+        idx_keep.append(get_idx(ppm, shifts[i]))
+
+    idx_keep= np.concatenate(idx_keep)
+    idx_keep.sort()
    
     Xc = X[:, idx_keep]
     ppc = ppm[idx_keep]

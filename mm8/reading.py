@@ -120,7 +120,8 @@ def import1d_procs(flist, exp_type, eretic=True):
 
     Args:
         flist:  DataFrame of experiment information (see list_exp())
-        exp_type:   2D experiment name, string (used for filtering)
+        exp_type:   1D or 2D experiment name(s), list of string (used for filtering)
+        eretic: bool, indicates if ERETIC signal information should be imported into meta (this errors if ERETIC is not calibrated)
     Returns:
         Tuple of three: X, ppm, meta
     """

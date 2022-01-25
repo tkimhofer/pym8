@@ -320,7 +320,7 @@ def ispec(x, ppm, shift=None, theme='gridon', lab=None):
     return None
 
 
-def spec(x, ppm, shift=None,  ax=None,xlab='ppm', ylab='Int', title=None, **kwargs):
+def spec(x, ppm, shift=None, ax=None, xlab='ppm', ylab='Int', title=None, **kwargs):
     """
     Plotting a single or multiple 1D NMR spectra
 
