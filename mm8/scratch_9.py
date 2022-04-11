@@ -12,6 +12,8 @@ find /Volumes/Torben_2/Sam_urine_021019 -name "*quant_report.xml"
 
 find /Volumes/Torben_2/Sam_urine_021019 -iname "*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="
 
+from importlib import reload
+reload(utility)
 
 def _scale(X):
     xm = np.mean(X, 0)

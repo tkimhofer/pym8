@@ -1,5 +1,5 @@
 ###################
-# 1D NMR pipeline with pymy
+# 1D NMR pipeline with pym8
 ###################
 # V1, 25/01/2022, T Kimhofer, Murdoch Uni
 
@@ -24,7 +24,7 @@ from mm8 import *
 ### read-in 1D spectra
 
 # define directory of NMR experiments
-path='/path/to/encolsing/folder'
+path='/path/to/enclosing/folder'
 # path='/Users/tk2812/Downloads'
 
 # determine experiment type and number in directory

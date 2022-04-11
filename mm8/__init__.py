@@ -32,3 +32,4 @@ from . import plotting
 from . import preproc
 from . import utility
 from . import analyse
+from . import opls
