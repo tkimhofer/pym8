@@ -46,6 +46,7 @@ class bst_search():
     class Node:
         def __init__(self, x, y, depth=4, minle=1000):
             def wMean(x, y):
+                import numpy as np
                 wm = np.sum((y / np.sum(y)) * x)
                 iwm = np.argmin(np.abs(wm - x))
                 return (wm, iwm)

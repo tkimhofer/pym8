@@ -5,6 +5,8 @@ This module imports 1D and 2D NMR spectra
 """
 
 import subprocess
+import sys
+
 import pandas as pd
 import numpy as np
 import os
@@ -59,14 +61,30 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     Returns:
         DataFrame of NMR experiment information - input for importing functions
     """
-    cmd = 'find '+path+' -type f -iname "acqus" ! -name ".*" -print0'+' | xargs -0 grep EXP=' 
-    sp = subprocess.getoutput(cmd)
-    out=sp.split('\n')
-    df=pd.DataFrame({'id': out})
-    out=df.id.str.split(':', n = 1, expand = True)
-    df['exp']=out[1]
-    df['exp']=df.exp.str.replace('.*<|>', '', regex=True)
-    df['fid']=df.id.str.replace('/acqus.*', '', regex=True)
+    ospl = sys.platform
+
+    if ospl == 'darwin' or ospl == 'linux':
+        cmd = 'find '+path+' -type f -iname "acqus" ! -name ".*" -print0'+' | xargs -0 grep EXP='
+        sp = subprocess.getoutput(cmd)
+        out=sp.split('\n')
+    else:
+        
+        out =[]
+        for dp, dn, fn in os.walk(path):
+            for fid in [f for f in fn if f == 'acqus']:
+                id=os.path.join(dp, 'acqus')
+                with open(id, 'r') as fhand:
+                    for l in fhand:
+                        if re.search('EXP=', l):
+                            out.append(id+':'+l.split('\n')[0])
+                            break
+    df = pd.DataFrame({'id': out})
+    out = df.id.str.split(':', n=1, expand=True)
+    df['exp'] = out[1]
+    df['exp'] = df.exp.str.replace('.*<|>', '', regex=True)
+    df['fid'] = df.id.str.replace('/acqus.*', '', regex=True)
+                            
+
 
 
     # if bruker_fits:
@@ -80,9 +98,8 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
         # bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
         # bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
         # out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
-
-    
     # check if bruker fits and qc's are included
+
     fsize=list()
     mtime=list()
     # check if procs exists

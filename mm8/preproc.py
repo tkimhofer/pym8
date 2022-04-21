@@ -355,7 +355,7 @@ def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     
 
 # excision of spectral areas
-def excise1d(X, ppm, shifts=[[8, 4.5], [5, 9.5]]):
+def excise1d(X, ppm, shifts=[[0.25, 4.5], [5, 9.5]]):
     """
     Excist spectral intervals using pre-defined limits: Kept is 0.25- 4.5 ppm and 5-10 ppm
     
