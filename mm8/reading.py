@@ -139,6 +139,12 @@ def import1d_procs(flist, exp_type, eretic=True):
         if not os.path.isfile(p1):
             continue
 
+        tpath = os.path.join(fexp.loc[i, 'fid'], 'pdata', '1', 'title')
+        if os.path.isfile(tpath):
+            title = open(tpath, 'r').read()
+        else:
+            title = 'NA'
+
         meta, spec = ng.bruker.read_pdata(f_path)
         SF01 = meta['procs']['OFFSET']
         SF = meta['procs']['SF']
@@ -155,12 +161,14 @@ def import1d_procs(flist, exp_type, eretic=True):
             # interpolate spec to same ppm values across experiments
             s_interp = np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec)))
             smat[i, :] = s_interp
+
+        meta['procs'].update({'title': title})
         lacqus.append(meta['acqus'])
         lprocs.append(meta['procs'])
         idx_filter.append(c)
         c = c + 1
 
-    smat = smat[np.array(idx_filter), :]
+    smat = smat[:c, :]
     procs = pd.DataFrame(lprocs)
     acqus = pd.DataFrame(lacqus)
 
