@@ -64,7 +64,7 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     ospl = sys.platform
 
     if ospl == 'darwin' or ospl == 'linux':
-        cmd = 'find '+path+' -type f -iname "acqus" ! -name ".*" -print0'+' | xargs -0 grep EXP='
+        cmd = 'find '+path+' -type f -iname "acqus" ! -name ".*" -print0'+' | xargs -0 grep -H EXP='
         sp = subprocess.getoutput(cmd)
         out=sp.split('\n')
     else:
@@ -78,14 +78,13 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
                         if re.search('EXP=', l):
                             out.append(id+':'+l.split('\n')[0])
                             break
-    df = pd.DataFrame({'id': out})
-    out = df.id.str.split(':', n=1, expand=True)
-    df['exp'] = out[1]
+
+    df = pd.DataFrame({'fid': out})
+    out = df.fid.str.split(':', n=1, expand=True)
+    df['exp'] = out.iloc[:, 1]
     df['exp'] = df.exp.str.replace('.*<|>', '', regex=True)
-    df['fid'] = df.id.str.replace('/acqus.*', '', regex=True)
-                            
-
-
+    # df['fid'] = df.id.str.replace('/acqus.*', '', regex=True)
+    df['fid'] =  out.iloc[:, 0].str.replace('/acqus.*', '', regex=True)
 
     # if bruker_fits:
         # cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
@@ -119,12 +118,15 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     df['size']=fsize
     df['mtime']=mtime
     
-    summary=df.groupby(['exp']).agg( n=('size','count'), size_byte= ('size', 'mean'), maxdiff_byte=('size', lambda x: max(x)-min(x)), mtime=('mtime','max')).reset_index()
+    # summary=df.groupby(['exp']).agg( n=('size','count'), size_byte= ('size', 'mean'), maxdiff_byte=('size', lambda x: max(x)-min(x)), mtime=('mtime','max')).reset_index()
+    summary=df.groupby(['exp']).agg( n=('size','count'), size_byte= ('size', 'mean'),  mtime=('mtime','max')).reset_index()
+
     summary.sort_values(by ='n', ascending = False)
     summary.mtime=pd.to_datetime(summary.mtime, unit='s').dt.floor('T')
+    summary=summary.iloc[summary.n.argsort().values]
     
     if pr:
-        print(summary)
+        print(summary.iloc[::-1,:])
     
     if return_results:
         return df
@@ -190,7 +192,7 @@ def import1d_procs(flist, exp_type, eretic=True):
     acqus = pd.DataFrame(lacqus)
 
     meta = pd.concat([acqus, procs], axis=1)
-    meta['id'] = fexp.id.iloc[np.array(idx_filter)]
+    meta['id'] = fexp.fid.iloc[np.array(idx_filter)]
 
     meta.index = ["s" + str(x) for x in meta.index]
     ab = np.split(meta._comments.values, '')[0]
@@ -200,6 +202,7 @@ def import1d_procs(flist, exp_type, eretic=True):
     meta['datetime'] = dtime
     if eretic:
         ere = eretic_factor(meta)
+
         tsp_pos=ere.Artificial_Eretic_Position.dropna().unique()
         if len(tsp_pos)==1:
             idx = mm8.utility.get_idx(ppm_ord, [tsp_pos[0]-0.1, tsp_pos[0]+1])
