@@ -148,59 +148,49 @@ def import1d_procs(flist, exp_type, eretic=True):
 
     fexp = flist.loc[flist.exp.isin(exp_type)].reset_index(drop=True)
 
-    lacqus = []
-    lprocs = []
-    idx_filter = []
-    c = 0
-    for i in range(fexp.shape[0]):
-        f_path = os.path.join(fexp.loc[i, 'fid'], '') + 'pdata/1'
-
-        p1 = f_path + '/1r'
+    met = []
+    s = []
+    ppm_ord = None
+    for i, f in enumerate(fexp.fid):
+        f_path = os.path.join(f, 'pdata', '1')
+        p1 = os.path.join(f_path, '1r')
         if not os.path.isfile(p1):
             continue
-
-        tpath = os.path.join(fexp.loc[i, 'fid'], 'pdata', '1', 'title')
+        tpath = os.path.join(f, 'pdata', '1', 'title')
         if os.path.isfile(tpath):
             title = open(tpath, 'r').read()
         else:
-            title = 'NA'
-
+            title = ''
         meta, spec = ng.bruker.read_pdata(f_path)
         SF01 = meta['procs']['OFFSET']
         SF = meta['procs']['SF']
         SW = meta['procs']['SW_p'] / SF
         FTsize = meta['procs']['FTSIZE']
         ppm = np.linspace(SF01, SF01 - SW, FTsize)
-
-        if c == 0:
+        if ppm_ord is None:
             ppm_ord = ppm
-            smat = np.ones((fexp.shape[0], len(ppm_ord)))
-            smat[0, :] = spec
-
+            s.append(spec)
         else:
-            # interpolate spec to same ppm values across experiments
-            s_interp = np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec)))
-            smat[i, :] = s_interp
-
+            s.append(np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec))))
         meta['procs'].update({'title': title})
-        lacqus.append(meta['acqus'])
-        lprocs.append(meta['procs'])
-        idx_filter.append(c)
-        c = c + 1
+        meta['acqus'].update({'id': f})
+        met.append(meta)
 
-    smat = smat[:c, :]
-    procs = pd.DataFrame(lprocs)
-    acqus = pd.DataFrame(lacqus)
 
-    meta = pd.concat([acqus, procs], axis=1)
-    meta['id'] = fexp.fid.iloc[idx_filter].values
-
+    meta = pd.DataFrame([{**x['acqus'], **x['procs']} for x in met])
     meta.index = ["s" + str(x) for x in meta.index]
-    ab = np.split(meta._comments.values, '')[0]
-    dtime = list()
-    for i in range(len(ab)):
-        dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
-    meta['datetime'] = dtime
+
+    smat = np.array(s)
+
+    try:
+        ab = np.split(meta._comments.values, '')[0]
+        dtime = list()
+        for i in range(len(ab)):
+            dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
+        meta['datetime'] = dtime
+    except:
+        pass
+
     if eretic:
         ere = eretic_factor(meta)
 
