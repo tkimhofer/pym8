@@ -127,6 +127,8 @@ def import1d_procs(flist, exp_type, eretic=True):
     """
 
     fexp = flist.loc[flist.exp.isin(exp_type)].reset_index(drop=True)
+    if fexp.shape[0] == 0:
+        raise ValueError('''No experiments found, check input variable "exp_type"''')
 
     lacqus = []
     lprocs = []
@@ -161,6 +163,7 @@ def import1d_procs(flist, exp_type, eretic=True):
         c = c + 1
 
     smat = smat[np.array(idx_filter), :]
+    smat[np.where(np.isnan(smat))] = 1
     procs = pd.DataFrame(lprocs)
     acqus = pd.DataFrame(lacqus)
 

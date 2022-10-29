@@ -147,7 +147,7 @@ def tsp_lw_sym(x, ppm, hwlen=100):
 
 def doub(cent_ppm=1.35, jconst_hz=6, lw=1.35, mag=100., sf=600, out='ppm', shift=[1.2, 1.5]):
     """
-    Create a paramteric 1D doublet (Cauchy)
+    Create a 1D NMR doublet using the Cauchy distribution
     
     Args:
         cent_ppm: Center position
@@ -441,7 +441,7 @@ def calibrate(X, ppm, signal='tsp'):
 
 def importJres(p1, acqus, wf2=tf.signal.hann_window, wf1=tf.signal.hann_window, pad='none'):
     """
-    Import a single 2D raw NMR spectrum
+    Import a single 2D raw NMR spectrum (tested for JRes)
     
     Args:
         p1: Location of Bruker ser file
