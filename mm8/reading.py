@@ -5,6 +5,8 @@ This module imports 1D and 2D NMR spectra
 """
 
 import subprocess
+import sys
+
 import pandas as pd
 import numpy as np
 import os
@@ -48,10 +50,11 @@ def eretic_factor(mc):
         ere[idx_repl[i]]=rep
     return pd.DataFrame(ere)
 
+
 def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     """
     List all NMR experiment files in directory
-    
+
     Args:
         path:  Directory path (string)
         return_results:     return DataFrame containing file information (logic)
@@ -59,36 +62,51 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
     Returns:
         DataFrame of NMR experiment information - input for importing functions
     """
-    cmd = 'find '+path+' -type f -iname "acqus" ! -name ".*" -print0'+' | xargs -0 grep EXP=' 
-    sp = subprocess.getoutput(cmd)
-    out=sp.split('\n')
-    df=pd.DataFrame({'id': out})
-    out=df.id.str.split(':', n = 1, expand = True)
-    df['exp']=out[1]
-    df['exp']=df.exp.str.replace('.*<|>', '', regex=True)
-    df['fid']=df.id.str.replace('/acqus.*', '', regex=True)
+    ospl = sys.platform
 
+    # if ospl == 'darwin' or ospl == 'linux':
+    #     cmd = 'find ' + path + ' -type f -iname "acqus" ! -name ".*" -print0' + ' | xargs -0 grep -H EXP='
+    #     sp = subprocess.getoutput(cmd)
+    #     out = sp.split('\n')
+    # else:
+
+    out = []
+    for dp, dn, fn in os.walk(path):
+        for fid in [f for f in fn if f == 'acqus']:
+            id = os.path.join(dp, 'acqus')
+            with open(id, 'r') as fhand:
+                for l in fhand:
+                    if re.search('EXP=', l):
+                        out.append(id + ':' + l.split('\n')[0])
+                        break
+
+    if len(out) ==0: raise ValueError('No experiments found')
+    df = pd.DataFrame({'fid': out})
+    out = df.fid.str.split(':', n=1, expand=True)
+    df['exp'] = out.iloc[:, 1]
+    df['exp'] = df.exp.str.replace('.*<|>', '', regex=True)
+    # df['fid'] = df.id.str.replace('/acqus.*', '', regex=True)
+    df['fid'] = df.fid.str.replace('acqus.*', '', regex=True)
 
     # if bruker_fits:
-        # cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
-        # sp = subprocess.getoutput(cmd)
-        # out = sp.split('\n')
-        # bf=pd.DataFrame({'id': out})
-        # outs=bf.id.str.split(':| *<QUANTIFICATION version="|">', expand=True)
-        # bf['file']=outs.iloc[:,0]
-        # bf['v'] = outs.iloc[:, 2]
-        # bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
-        # bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
-        # out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
-
-    
+    # cmd = 'find ' + path + ' -iname "*quant_report*.xml"  -print0 | xargs -0 grep "QUANTIFICATION version="'
+    # sp = subprocess.getoutput(cmd)
+    # out = sp.split('\n')
+    # bf=pd.DataFrame({'id': out})
+    # outs=bf.id.str.split(':| *<QUANTIFICATION version="|">', expand=True)
+    # bf['file']=outs.iloc[:,0]
+    # bf['v'] = outs.iloc[:, 2]
+    # bf['path']=outs.iloc[:,0].str.replace('/pdata/.*', '', regex=True)
+    # bf['exp'] = bf.path.str.extract('/([0-9]{2,})$', expand=True)
+    # out = bf.id.str.split(':|<QUANTIFICATION version="', expand=True)
     # check if bruker fits and qc's are included
-    fsize=list()
-    mtime=list()
+
+    fsize = list()
+    mtime = list()
     # check if procs exists
     for i in range(df.shape[0]):
-        fname=df.fid[i]+'/pdata'
-        inf=os.stat(fname)
+        fname = os.path.join(df.fid[i], 'pdata')
+        inf = os.stat(fname)
         try:
             inf
         except NameError:
@@ -98,21 +116,23 @@ def list_exp(path, return_results=True, pr=True, bruker_fits=True):
 
         mtime.append(inf.st_mtime)
         fsize.append(inf.st_size)
-    
-    df['size']=fsize
-    df['mtime']=mtime
-    
-    summary=df.groupby(['exp']).agg( n=('size','count'), size_byte= ('size', 'mean'), maxdiff_byte=('size', lambda x: max(x)-min(x)), mtime=('mtime','max')).reset_index()
-    summary.sort_values(by ='n', ascending = False)
-    summary.mtime=pd.to_datetime(summary.mtime, unit='s').dt.floor('T')
-    
+
+    df['size'] = fsize
+    df['mtime'] = mtime
+
+    # summary=df.groupby(['exp']).agg( n=('size','count'), size_byte= ('size', 'mean'), maxdiff_byte=('size', lambda x: max(x)-min(x)), mtime=('mtime','max')).reset_index()
+    summary = df.groupby(['exp']).agg(n=('size', 'count'), size_byte=('size', 'mean'),
+                                      mtime=('mtime', 'max')).reset_index()
+
+    summary.sort_values(by='n', ascending=False)
+    summary.mtime = pd.to_datetime(summary.mtime, unit='s').dt.floor('T')
+    summary = summary.iloc[summary.n.argsort().values]
+
     if pr:
-        print(summary)
-    
+        print(summary.iloc[::-1, :])
+
     if return_results:
         return df
-
-
 
 def import1d_procs(flist, exp_type, eretic=True):
     """
@@ -130,54 +150,51 @@ def import1d_procs(flist, exp_type, eretic=True):
     if fexp.shape[0] == 0:
         raise ValueError('''No experiments found, check input variable "exp_type"''')
 
-    lacqus = []
-    lprocs = []
-    idx_filter = []
-    c = 0
-    for i in range(fexp.shape[0]):
-        f_path = os.path.join(fexp.loc[i, 'fid'], '') + 'pdata/1'
-
-        p1 = f_path + '/1r'
+    met = []
+    s = []
+    ppm_ord = None
+    for i, f in enumerate(fexp.fid):
+        f_path = os.path.join(f, 'pdata', '1')
+        p1 = os.path.join(f_path, '1r')
         if not os.path.isfile(p1):
             continue
-
+        tpath = os.path.join(f, 'pdata', '1', 'title')
+        if os.path.isfile(tpath):
+            title = open(tpath, 'r').read()
+        else:
+            title = ''
         meta, spec = ng.bruker.read_pdata(f_path)
         SF01 = meta['procs']['OFFSET']
         SF = meta['procs']['SF']
         SW = meta['procs']['SW_p'] / SF
         FTsize = meta['procs']['FTSIZE']
         ppm = np.linspace(SF01, SF01 - SW, FTsize)
-
-        if c == 0:
+        if ppm_ord is None:
             ppm_ord = ppm
-            smat = np.ones((fexp.shape[0], len(ppm_ord)))
-            smat[0, :] = spec
-
+            s.append(spec)
         else:
-            # interpolate spec to same ppm values across experiments
-            s_interp = np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec)))
-            smat[i, :] = s_interp
-        lacqus.append(meta['acqus'])
-        lprocs.append(meta['procs'])
-        idx_filter.append(c)
-        c = c + 1
+            s.append(np.flip(np.interp(np.flip(ppm_ord), np.flip(ppm), np.flip(spec))))
+        meta['procs'].update({'title': title})
+        meta['acqus'].update({'id': f})
+        met.append(meta)
 
-    smat = smat[np.array(idx_filter), :]
-    smat[np.where(np.isnan(smat))] = 1
-    procs = pd.DataFrame(lprocs)
-    acqus = pd.DataFrame(lacqus)
-
-    meta = pd.concat([acqus, procs], axis=1)
-    meta['id'] = fexp.id.iloc[np.array(idx_filter)]
-
+    meta = pd.DataFrame([{**x['acqus'], **x['procs']} for x in met])
     meta.index = ["s" + str(x) for x in meta.index]
-    ab = np.split(meta._comments.values, '')[0]
-    dtime = list()
-    for i in range(len(ab)):
-        dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
-    meta['datetime'] = dtime
+
+    smat = np.array(s)
+
+    try:
+        ab = np.split(meta._comments.values, '')[0]
+        dtime = list()
+        for i in range(len(ab)):
+            dtime.append(pd.to_datetime(re.sub('\$\$ |\+.*', '', ab[i][0][0])))
+        meta['datetime'] = dtime
+    except:
+        pass
+
     if eretic:
         ere = eretic_factor(meta)
+
         tsp_pos=ere.Artificial_Eretic_Position.dropna().unique()
         if len(tsp_pos)==1:
             idx = mm8.utility.get_idx(ppm_ord, [tsp_pos[0]-0.1, tsp_pos[0]+1])

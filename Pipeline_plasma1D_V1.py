@@ -1,5 +1,9 @@
 ###################
+<<<<<<< HEAD
 # 1D NMR pipeline
+=======
+# 1D NMR pipeline with pym8
+>>>>>>> 5661dcc71cac544d9fe55654144610a90af74060
 ###################
 # V1, 25/01/2022
 # Torben Kimhofer
@@ -19,8 +23,18 @@ import numpy as np
 
 ### read-in 1D spectra
 
+<<<<<<< HEAD
 # check directory for 1D NMR experiments
 path='/path/to/encolsing/folder'
+=======
+# define directory of NMR experiments
+path='/path/to/enclosing/folder'
+# path='/Users/tk2812/Downloads'
+
+# determine experiment type and number in directory
+# the following code prints out a summary of experiments into the console
+# copy 1D NMR experiment type(s) (e.g. PROF_PLASMA_NOESY and PROF_PLASMA_CPMG)
+>>>>>>> 5661dcc71cac544d9fe55654144610a90af74060
 exp = reading.list_exp(path, return_results=True, pr=True)
 # example output:
 #                 exp   n  size_byte  maxdiff_byte               mtime

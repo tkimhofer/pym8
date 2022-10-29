@@ -283,7 +283,7 @@ def get_idx(ppm, shift):
 
 
 # calibrate to double defined in this function
-def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
+def calibrate_doubl(X, ppm, cent_ppm, j_hz=4, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     """
     Calibrate spectra to a doublet (e.g. plasma to glucose at 5.23 ppm with j_hz=6, alanine at 1.491 ppm with j_hz=6, lactate at 1.35 ppm with j_hz=6)
     
@@ -300,7 +300,7 @@ def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     """
     # alanine at 1.491 ppm with j_hz=6
     # lactate at 1.35 ppm with j_hz=6
-    # glucose at 5.23 ppm with j_hz=6
+    # glucose at 5.23 ppm with j_hz=4
     
     dtype=X.dtype
     #tol_ppm=tol_ppm.astype( dtype)
@@ -355,7 +355,7 @@ def calibrate_doubl(X, ppm, cent_ppm, j_hz, lw=0.5, tol_ppm=0.03,  niter_bl=5):
     
 
 # excision of spectral areas
-def excise1d(X, ppm, shifts=[[8, 4.5], [5, 9.5]]):
+def excise1d(X, ppm, shifts=[[0.25, 4.5], [5, 9.5]]):
     """
     Excist spectral intervals using pre-defined limits: Kept is 0.25- 4.5 ppm and 5-10 ppm
     

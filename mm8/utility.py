@@ -12,6 +12,10 @@ from scipy.sparse import diags
 import tensorflow as tf
 import tensorflow_probability as tfp
 
+
+import logging
+logging.getLogger()
+
 tfd=tfp.distributions
 
 
